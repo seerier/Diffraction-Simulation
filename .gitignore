@@ -1,0 +1,13 @@
+*~
+src/build
+src/bin
+src/objs
+.sconsign.dblite
+
+.git
+.vs
+out
+build
+
+CMakeSettings.json
+scenes
