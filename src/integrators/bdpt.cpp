@@ -178,7 +178,7 @@ int RandomWalk(const Scene &scene, RayDifferential ray, Sampler &sampler,
 
             // Compute scattering functions for _mode_ and skip over medium
             // boundaries
-            isect.ComputeScatteringFunctions(ray, arena, true, mode);
+            isect.ComputeScatteringFunctions(ray, arena, scene, true, mode);
             if (!isect.bsdf) {
                 ray = isect.SpawnRay(ray.d);
                 continue;

@@ -80,6 +80,7 @@ class Scene {
 
     // gxzhao added
     friend class FsdTestIntegrator;
+    friend class FsdBxDF;
 };
 
 }  // namespace pbrt

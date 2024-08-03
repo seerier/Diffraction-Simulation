@@ -67,7 +67,7 @@ class KdTreeAccel : public Aggregate {
     bool IntersectP(const Ray &ray) const;
 
 
-    std::vector<Triangle> RadiusSearch(const Point3f &point, Float radius, bool &flag) const;
+    std::vector<Triangle> RadiusSearch(const Point3f &point, Float radius) const;
 
 
 
@@ -82,7 +82,7 @@ class KdTreeAccel : public Aggregate {
 
 
     void radiusSearchRecursive(int nodeNum, const Point3f &point, Float radius,
-        std::vector<Triangle> &results, bool &flag) const;
+        std::vector<Triangle> &results) const;
 
 
 

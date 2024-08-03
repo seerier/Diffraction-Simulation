@@ -11,3 +11,7 @@ build
 
 CMakeSettings.json
 scenes
+fsd-scenes/cornell-box/image
+fsd-scenes/cornell-box/log
+fsd-scenes/diffraction-patterns/image
+fsd-scenes/diffraction-patterns/log

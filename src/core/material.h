@@ -54,7 +54,7 @@ class Material {
     virtual void ComputeScatteringFunctions(SurfaceInteraction *si,
                                             MemoryArena &arena,
                                             TransportMode mode,
-                                            bool allowMultipleLobes) const = 0;
+                                            bool allowMultipleLobes, const Scene &scene) const = 0;
     virtual ~Material();
     static void Bump(const std::shared_ptr<Texture<Float>> &d,
                      SurfaceInteraction *si);

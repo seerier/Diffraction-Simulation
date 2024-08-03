@@ -44,7 +44,7 @@ namespace pbrt {
 // KdSubsurfaceMaterial Method Definitions
 void KdSubsurfaceMaterial::ComputeScatteringFunctions(
     SurfaceInteraction *si, MemoryArena &arena, TransportMode mode,
-    bool allowMultipleLobes) const {
+    bool allowMultipleLobes, const Scene &scene) const {
     // Perform bump mapping with _bumpMap_, if present
     if (bumpMap) Bump(bumpMap, si);
     Spectrum R = Kr->Evaluate(*si).Clamp();

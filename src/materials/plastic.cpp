@@ -44,7 +44,7 @@ namespace pbrt {
 // PlasticMaterial Method Definitions
 void PlasticMaterial::ComputeScatteringFunctions(
     SurfaceInteraction *si, MemoryArena &arena, TransportMode mode,
-    bool allowMultipleLobes) const {
+    bool allowMultipleLobes, const Scene &scene) const {
     // Perform bump mapping with _bumpMap_, if present
     if (bumpMap) Bump(bumpMap, si);
     si->bsdf = ARENA_ALLOC(arena, BSDF)(*si);

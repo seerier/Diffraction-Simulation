@@ -62,7 +62,7 @@ class SubstrateMaterial : public Material {
           remapRoughness(remapRoughness) {}
     void ComputeScatteringFunctions(SurfaceInteraction *si, MemoryArena &arena,
                                     TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // SubstrateMaterial Private Data

@@ -1,0 +1,138 @@
+Integrator "bdpt"
+    "integer maxdepth" [ 16 ]
+Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1  ]
+Sampler "sobol"
+    "integer pixelsamples" [ 1 ]
+PixelFilter "triangle"
+    "float xwidth" [ 1 ]
+    "float ywidth" [ 1 ]
+Film "image"
+    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\fsd-scenes\\cornell-box\\image\\fsdBSDF-500-NotAllEnableTest.png"]
+    "integer yresolution" [ 500 ]
+    "integer xresolution" [ 500 ]
+Camera "perspective"
+    "float fov" [ 19.5 ]
+
+Accelerator "kdtree"
+
+MakeNamedMedium "medium"
+    "string type" [ "homogeneous" ] 
+    "rgb sigma_a" [ 0 0 0 ] 
+    "rgb sigma_s" [ .35 .35 .35 ]
+    "float g" [0.5]
+    "float scale" [.01]
+
+MediumInterface "" "medium"
+
+WorldBegin
+
+MakeNamedMaterial "LeftWall"
+    "string type" [ "matte" ]
+    "rgb Kd" [ 0.002 0.002 0.002 ]
+MakeNamedMaterial "RightWall"
+    "string type" [ "matte" ]
+    "rgb Kd" [ 0.3 0.3 0.3 ]
+MakeNamedMaterial "Floor"
+    "string type" [ "matte" ]
+    "rgb Kd" [ 0.01 0.01 0.01 ]
+MakeNamedMaterial "Ceiling"
+    "string type" [ "matte" ]
+    "rgb Kd" [ 0.01 0.01 0.01 ]
+MakeNamedMaterial "BackWall"
+    "string type" [ "matte" ]
+    "rgb Kd" [ 0.002 0.002 0.002 ]
+
+MakeNamedMaterial "Light"
+    "string type" [ "matte" ]
+    "rgb Kd" [ 0 0 0 ]
+
+MakeNamedMaterial "screen"
+        "string type" "matte"
+        "color Kd" [.0125 .0125 .0125]
+
+
+AttributeBegin
+NamedMaterial "Floor"
+Shape "trianglemesh"
+    "point2 uv" [ 0 0 1 0 1 1 0 1 
+        ]
+    "normal N" [ 4.37114e-8 1 1.91069e-15 4.37114e-8 1 1.91069e-15 4.37114e-8 1 1.91069e-15 
+                 4.37114e-8 1 1.91069e-15 ]
+    "point3 P" [ -1 1.74846e-7 -1 -1 1.74846e-7 1 1 -1.74846e-7 1 1 -1.74846e-7 -1 ]
+    "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd
+
+AttributeBegin
+NamedMaterial "Ceiling"
+Shape "trianglemesh"
+    "point2 uv" [ 0 0 1 0 1 1 0 1 
+        ]
+    "normal N" [ -8.74228e-8 -1 -4.37114e-8 -8.74228e-8 -1 -4.37114e-8 -8.74228e-8 
+                 -1 -4.37114e-8 -8.74228e-8 -1 -4.37114e-8 ]
+    "point3 P" [ 1 2 1 -1 2 1 -1 2 -1 1 2 -1 ]
+    "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd
+
+AttributeBegin
+NamedMaterial "BackWall"
+Shape "trianglemesh"
+    "point2 uv" [ 0 0 1 0 1 1 0 1 
+        ]
+    "normal N" [ 8.74228e-8 -4.37114e-8 -1 8.74228e-8 -4.37114e-8 -1 8.74228e-8 -4.37114e-8 
+                 -1 8.74228e-8 -4.37114e-8 -1 ]
+    "point3 P" [ -1 0 -1 -1 2 -1 1 2 -1 1 0 -1 ]
+    "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd
+
+AttributeBegin
+NamedMaterial "RightWall"
+Shape "trianglemesh"
+    "point2 uv" [ 0 0 1 0 1 1 0 1 
+        ]
+    "normal N" [ 1 -4.37114e-8 1.31134e-7 1 -4.37114e-8 1.31134e-7 1 -4.37114e-8 
+                 1.31134e-7 1 -4.37114e-8 1.31134e-7 ]
+    "point3 P" [ 1 0 -1 1 2 -1 1 2 1 1 0 1 ]
+    "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd
+
+AttributeBegin
+NamedMaterial "LeftWall"
+Shape "trianglemesh"
+    "point2 uv" [ 0 0 1 0 1 1 0 1 
+        ]
+    "normal N" [ -1 -4.37114e-8 -4.37114e-8 -1 -4.37114e-8 -4.37114e-8 -1 -4.37114e-8 
+                 -4.37114e-8 -1 -4.37114e-8 -4.37114e-8 ]
+    "point3 P" [ -1 0 1 -1 2 1 -1 2 -1 -1 0 -1 ]
+    "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd
+
+#fsd
+AttributeBegin
+    Material "fsd"
+        "string nestedmaterial" "screen"
+
+
+Translate -0.4 1 0
+Scale 0.001 0.375 0.375
+Rotate 90 0 1 0
+Rotate 90 0 0 1
+
+
+Include "geometry/fancyslits.pbrt"
+
+AttributeEnd
+
+AttributeBegin
+    LightSource "spot"
+        "point from" [-0.98 1 0]
+        "point to" [-0.4 1 0]
+        "rgb I" [2500000 2500000 2500000]
+        "float coneangle" [1.12]
+        "float conedeltaangle" [0.28]
+    NamedMaterial "Light"
+AttributeEnd
+
+
+
+
+WorldEnd

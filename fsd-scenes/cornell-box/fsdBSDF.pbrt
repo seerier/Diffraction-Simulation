@@ -7,7 +7,7 @@ PixelFilter "triangle"
     "float xwidth" [ 1 ]
     "float ywidth" [ 1 ]
 Film "image"
-    "string filename" ["E:\\Coding\\github_repo\\pbrt-v3\\scenes\\myscenes\\cbox\\cornell-box-pbrt\\cornell-box\\image\\fsdBSDF.png"]
+    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\fsd-scenes\\cornell-box\\image\\fsdBSDF.png"]
     "integer yresolution" [ 2000 ]
     "integer xresolution" [ 2000 ]
 Camera "perspective"

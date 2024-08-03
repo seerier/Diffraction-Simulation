@@ -62,7 +62,7 @@ namespace pbrt {
 
                 if (!foundIntersection) break;
 
-                isect.ComputeScatteringFunctions(ray, arena, true);
+                isect.ComputeScatteringFunctions(ray, arena, scene, true);
                 if (!isect.bsdf) {
                     --bounces;
                     ray = isect.SpawnRay(ray.d);

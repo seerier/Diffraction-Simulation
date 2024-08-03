@@ -39,6 +39,9 @@
 
 namespace pbrt {
 
+//RandomSampler *RandomSampler::randomSampler = nullptr;
+
+//RandomSampler::RandomSampler(int ns, int seed) : Sampler(ns), rng(seed) { randomSampler = this; }
 RandomSampler::RandomSampler(int ns, int seed) : Sampler(ns), rng(seed) {}
 
 Float RandomSampler::Get1D() {

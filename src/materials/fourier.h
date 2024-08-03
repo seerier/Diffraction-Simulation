@@ -55,7 +55,7 @@ class FourierMaterial : public Material {
                     const std::shared_ptr<Texture<Float>> &bump);
     void ComputeScatteringFunctions(SurfaceInteraction *si, MemoryArena &arena,
                                     TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // FourierMaterial Private Data

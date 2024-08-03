@@ -457,16 +457,14 @@ std::shared_ptr<KdTreeAccel> CreateKdTreeAccelerator(
 
 // gxzhao added
 
-std::vector<Triangle> KdTreeAccel::RadiusSearch(const Point3f &point, Float radius, bool &flag) const {
+std::vector<Triangle> KdTreeAccel::RadiusSearch(const Point3f &point, Float radius) const {
     std::vector<Triangle> results;
-    bool f = false;
-    radiusSearchRecursive(0, point, radius, results, f);
-    flag = f;
+    radiusSearchRecursive(0, point, radius, results);
     return results;
 }
 
 void KdTreeAccel::radiusSearchRecursive(int nodeNum, const Point3f &point, Float radius,
-    std::vector<Triangle> &results, bool &flag) const {
+    std::vector<Triangle> &results) const {
     if (nodeNum >= nAllocedNodes) return;
     const KdAccelNode *node = &nodes[nodeNum];
 
@@ -477,82 +475,84 @@ void KdTreeAccel::radiusSearchRecursive(int nodeNum, const Point3f &point, Float
             std::shared_ptr<GeometricPrimitive> geoPrim = std::dynamic_pointer_cast<GeometricPrimitive>(prim);
             std::shared_ptr<Triangle> triPtr = std::dynamic_pointer_cast<Triangle>(geoPrim->shape);
             if (triPtr) {
-                flag = true;
-                if (DistanceSquared((prim->WorldBound().pMin + prim->WorldBound().pMax) / 2, point) <= radius * radius) {
+                results.push_back(*triPtr);
+
+                /*
+                const std::shared_ptr<TriangleMesh> &mesh = triPtr->mesh;
+                const Point3f &p0 = mesh->p[triPtr->v[0]];
+                //LOG(INFO) << "In radiusSearch: " << "p0 = " << p0 << ", point = " << point << ", distance = " << DistanceSquared(p0, point) << ", radiusSquared = " << radius * radius;
+                if (DistanceSquared(p0, point) <= radius * radius) {
                     results.push_back(*triPtr);
+                    return;
                 }
-                else {
-                    const std::shared_ptr<TriangleMesh> &mesh = triPtr->mesh;
-                    const Point3f &p0 = mesh->p[triPtr->v[0]];
-                    if (DistanceSquared(p0, point) <= radius * radius) {
-                        results.push_back(*triPtr);
-                        return;
-                    }
-                    const Point3f &p1 = mesh->p[triPtr->v[1]];
-                    if (DistanceSquared(p1, point) <= radius * radius) {
-                        results.push_back(*triPtr);
-                        return;
-                    }
-                    const Point3f &p2 = mesh->p[triPtr->v[2]];
-                    if (DistanceSquared(p2, point) <= radius * radius) {
-                        results.push_back(*triPtr);
-                        return;
-                    }
+                const Point3f &p1 = mesh->p[triPtr->v[1]];
+                //LOG(INFO) << "In radiusSearch: " << "p1 = " << p1 << ", point = " << point << ", distance = " << DistanceSquared(p1, point) << ", radiusSquared = " << radius * radius;
+                if (DistanceSquared(p1, point) <= radius * radius) {
+                    results.push_back(*triPtr);
+                    return;
                 }
+                const Point3f &p2 = mesh->p[triPtr->v[2]];
+                //LOG(INFO) << "In radiusSearch: " << "p2 = " << p2 << ", point = " << point << ", distance = " << DistanceSquared(p2, point) << ", radiusSquared = " << radius * radius;
+                if (DistanceSquared(p2, point) <= radius * radius) {
+                    results.push_back(*triPtr);
+                    return;
+                }
+                */
+
             }
-            
-        }
-        else {
+
+        } else {
             for (int i = 0; i < nPrimitives; ++i) {
                 std::shared_ptr<Primitive> prim = primitives[primitiveIndices[node->primitiveIndicesOffset + i]];
                 std::shared_ptr<GeometricPrimitive> geoPrim = std::dynamic_pointer_cast<GeometricPrimitive>(prim);
                 std::shared_ptr<Triangle> triPtr = std::dynamic_pointer_cast<Triangle>(geoPrim->shape);
                 if (triPtr) {
-                    flag = true;
-                    if (DistanceSquared((prim->WorldBound().pMin + prim->WorldBound().pMax) / 2, point) <= radius * radius) {
+
+                    results.push_back(*triPtr);
+                    continue;
+
+                    /*
+                    // TODO: 三个顶点是否在球范围内代表三个bool值a, b, c.
+                    // 如果a, b, c均为true，则三角形完全在球内，不用切割(Truncate)三条边
+                    // 如果其中有1~2个为true，则三角形部分在球内，需要对三条边中的某些边进行切割
+                    // 如果a, b, c均为false，则三角形完全不在球内，可以排除
+
+
+                    const std::shared_ptr<TriangleMesh> &mesh = triPtr->mesh;
+                    const Point3f &p0 = mesh->p[triPtr->v[0]];
+                    //LOG(INFO) << "In radiusSearch: " << "p0 = " << p0 << ", point = " << point << ", distance = " << DistanceSquared(p0, point) << ", radiusSquared = " << radius * radius;
+                    if (DistanceSquared(p0, point) <= radius * radius) {
                         results.push_back(*triPtr);
+                        continue;
                     }
-                    else {
-
-                        // TODO: 三个顶点是否在球范围内代表三个bool值a, b, c.
-                        // 如果a, b, c均为true，则三角形完全在球内，不用切割(Truncate)三条边
-                        // 如果其中有1~2个为true，则三角形部分在球内，需要对三条边中的某些边进行切割
-                        // 如果a, b, c均为false，则三角形完全不在球内，可以排除
-
-
-                        const std::shared_ptr<TriangleMesh> &mesh = triPtr->mesh;
-                        const Point3f &p0 = mesh->p[triPtr->v[0]];
-                        if (DistanceSquared(p0, point) <= radius * radius) {
-                            results.push_back(*triPtr);
-                            continue;
-                        }
-                        const Point3f &p1 = mesh->p[triPtr->v[1]];
-                        if (DistanceSquared(p1, point) <= radius * radius) {
-                            results.push_back(*triPtr);
-                            continue;
-                        }
-                        const Point3f &p2 = mesh->p[triPtr->v[2]];
-                        if (DistanceSquared(p2, point) <= radius * radius) {
-                            results.push_back(*triPtr);
-                            continue;
-                        }
+                    const Point3f &p1 = mesh->p[triPtr->v[1]];
+                    //LOG(INFO) << "In radiusSearch: " << "p1 = " << p1 << ", point = " << point << ", distance = " << DistanceSquared(p1, point) << ", radiusSquared = " << radius * radius;
+                    if (DistanceSquared(p1, point) <= radius * radius) {
+                        results.push_back(*triPtr);
+                        continue;
                     }
+                    const Point3f &p2 = mesh->p[triPtr->v[2]];
+                    //LOG(INFO) << "In radiusSearch: " << "p2 = " << p2 << ", point = " << point << ", distance = " << DistanceSquared(p2, point) << ", radiusSquared = " << radius * radius;
+                    if (DistanceSquared(p2, point) <= radius * radius) {
+                        results.push_back(*triPtr);
+                        continue;
+                    }
+                    */
+
                 }
-                
-                
+
+
             }
         }
-        
-    }
-    else {
+    } else {
         int axis = node->SplitAxis();
         Float split = node->SplitPos();
 
         if (point[axis] + radius > split) {
-            radiusSearchRecursive(node->AboveChild(), point, radius, results, flag);
+            radiusSearchRecursive(node->AboveChild(), point, radius, results);
         }
         if (point[axis] - radius < split) {
-            radiusSearchRecursive(nodeNum + 1, point, radius, results, flag);
+            radiusSearchRecursive(nodeNum + 1, point, radius, results);
         }
     }
 }

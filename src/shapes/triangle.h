@@ -115,6 +115,8 @@ class Triangle : public Shape {
 
     // gxzhao added
     friend class KdTreeAccel;
+    friend class FsdBxDF;
+    friend class FsdTestIntegrator;
 };
 
 std::vector<std::shared_ptr<Shape>> CreateTriangleMesh(

@@ -82,7 +82,7 @@ class DisneyMaterial : public Material {
           bumpMap(bumpMap) {}
     void ComputeScatteringFunctions(SurfaceInteraction *si, MemoryArena &arena,
                                     TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // DisneyMaterial Private Data

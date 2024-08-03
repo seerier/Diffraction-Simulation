@@ -184,7 +184,7 @@ void SPPMIntegrator::Render(const Scene &scene) {
                         // Process SPPM camera ray intersection
 
                         // Compute BSDF at SPPM camera ray intersection
-                        isect.ComputeScatteringFunctions(ray, arena, true);
+                        isect.ComputeScatteringFunctions(ray, arena, scene, true);
                         if (!isect.bsdf) {
                             ray = isect.SpawnRay(ray.d);
                             --depth;
@@ -377,7 +377,7 @@ void SPPMIntegrator::Render(const Scene &scene) {
                     // Sample new photon ray direction
 
                     // Compute BSDF at photon intersection point
-                    isect.ComputeScatteringFunctions(photonRay, arena, true,
+                    isect.ComputeScatteringFunctions(photonRay, arena, scene, true,
                                                      TransportMode::Importance);
                     if (!isect.bsdf) {
                         --depth;

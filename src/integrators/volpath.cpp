@@ -113,7 +113,7 @@ Spectrum VolPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
             if (!foundIntersection || bounces >= maxDepth) break;
 
             // Compute scattering functions and skip over medium boundaries
-            isect.ComputeScatteringFunctions(ray, arena, true);
+            isect.ComputeScatteringFunctions(ray, arena, scene, true);
             if (!isect.bsdf) {
                 ray = isect.SpawnRay(ray.d);
                 bounces--;

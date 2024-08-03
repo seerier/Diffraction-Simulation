@@ -54,7 +54,7 @@ class MatteMaterial : public Material {
         : Kd(Kd), sigma(sigma), bumpMap(bumpMap) {}
     void ComputeScatteringFunctions(SurfaceInteraction *si, MemoryArena &arena,
                                     TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // MatteMaterial Private Data

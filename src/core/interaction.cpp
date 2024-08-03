@@ -91,11 +91,12 @@ void SurfaceInteraction::SetShadingGeometry(const Vector3f &dpdus,
 
 void SurfaceInteraction::ComputeScatteringFunctions(const RayDifferential &ray,
                                                     MemoryArena &arena,
+                                                    const Scene &scene,
                                                     bool allowMultipleLobes,
                                                     TransportMode mode) {
     ComputeDifferentials(ray);
     primitive->ComputeScatteringFunctions(this, arena, mode,
-                                          allowMultipleLobes);
+        allowMultipleLobes, scene);
 }
 
 void SurfaceInteraction::ComputeDifferentials(

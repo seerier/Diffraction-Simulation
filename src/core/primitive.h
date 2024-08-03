@@ -60,7 +60,7 @@ class Primitive {
     virtual void ComputeScatteringFunctions(SurfaceInteraction *isect,
                                             MemoryArena &arena,
                                             TransportMode mode,
-                                            bool allowMultipleLobes) const = 0;
+                                            bool allowMultipleLobes, const Scene &scene) const = 0;
 };
 
 // GeometricPrimitive Declarations
@@ -78,7 +78,7 @@ class GeometricPrimitive : public Primitive {
     const Material *GetMaterial() const;
     void ComputeScatteringFunctions(SurfaceInteraction *isect,
                                     MemoryArena &arena, TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // GeometricPrimitive Private Data
@@ -103,7 +103,7 @@ class TransformedPrimitive : public Primitive {
     const Material *GetMaterial() const { return nullptr; }
     void ComputeScatteringFunctions(SurfaceInteraction *isect,
                                     MemoryArena &arena, TransportMode mode,
-                                    bool allowMultipleLobes) const {
+                                    bool allowMultipleLobes, const Scene &scene) const {
         LOG(FATAL) <<
             "TransformedPrimitive::ComputeScatteringFunctions() shouldn't be "
             "called";
@@ -126,7 +126,7 @@ class Aggregate : public Primitive {
     const Material *GetMaterial() const;
     void ComputeScatteringFunctions(SurfaceInteraction *isect,
                                     MemoryArena &arena, TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 };
 
 }  // namespace pbrt

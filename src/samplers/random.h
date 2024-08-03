@@ -52,11 +52,14 @@ class RandomSampler : public Sampler {
     Point2f Get2D();
     std::unique_ptr<Sampler> Clone(int seed);
 
+    //static RandomSampler *randomSampler;
+
   private:
     RNG rng;
 };
 
 Sampler *CreateRandomSampler(const ParamSet &params);
+
 
 }  // namespace pbrt
 

@@ -183,28 +183,27 @@ class BSDF {
                         ss.y * v.x + ts.y * v.y + ns.y * v.z,
                         ss.z * v.x + ts.z * v.y + ns.z * v.z);
     }
-    Spectrum f(const Vector3f &woW, const Vector3f &wiW,
+    virtual Spectrum f(const Vector3f &woW, const Vector3f &wiW,
                BxDFType flags = BSDF_ALL) const;
     Spectrum rho(int nSamples, const Point2f *samples1, const Point2f *samples2,
                  BxDFType flags = BSDF_ALL) const;
     Spectrum rho(const Vector3f &wo, int nSamples, const Point2f *samples,
                  BxDFType flags = BSDF_ALL) const;
-    Spectrum Sample_f(const Vector3f &wo, Vector3f *wi, const Point2f &u,
+    virtual Spectrum Sample_f(const Vector3f &wo, Vector3f *wi, const Point2f &u,
                       Float *pdf, BxDFType type = BSDF_ALL,
                       BxDFType *sampledType = nullptr) const;
-    Float Pdf(const Vector3f &wo, const Vector3f &wi,
+    virtual Float Pdf(const Vector3f &wo, const Vector3f &wi,
               BxDFType flags = BSDF_ALL) const;
     std::string ToString() const;
 
     // BSDF Public Data
     const Float eta;
 
-    // gxzhao change them from private to protected
-  protected:
-    // BSDF Protected Methods
+  private:
+    // BSDF Private Methods
     ~BSDF() {}
 
-    // BSDF Protected Data
+    // BSDF Private Data
     const Normal3f ns, ng;
     const Vector3f ss, ts;
     int nBxDFs = 0;
@@ -212,6 +211,7 @@ class BSDF {
     BxDF *bxdfs[MaxBxDFs];
     friend class MixMaterial;
     friend class FsdMaterial;
+    friend class FsdBSDF;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const BSDF &bsdf) {

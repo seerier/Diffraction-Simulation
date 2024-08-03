@@ -61,7 +61,7 @@ Spectrum MyPathIntegrator::Li(const RayDifferential &r, const Scene &scene,
 
         //const Normal3f n = intr.shading.n;
 
-        intr.ComputeScatteringFunctions(ray, arena, true);
+        intr.ComputeScatteringFunctions(ray, arena, scene, true);
         if (!intr.bsdf) {
             --bounces;
             ray = intr.SpawnRay(ray.d);

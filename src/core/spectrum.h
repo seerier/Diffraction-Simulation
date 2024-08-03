@@ -424,6 +424,10 @@ class SampledSpectrum : public CoefficientSpectrum<nSpectralSamples> {
     static SampledSpectrum rgbIllum2SpectMagenta, rgbIllum2SpectYellow;
     static SampledSpectrum rgbIllum2SpectRed, rgbIllum2SpectGreen;
     static SampledSpectrum rgbIllum2SpectBlue;
+
+
+    // FsdBxDF
+    friend class FsdBxDF;
 };
 
 class RGBSpectrum : public CoefficientSpectrum<3> {

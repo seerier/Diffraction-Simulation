@@ -128,7 +128,7 @@ class SurfaceInteraction : public Interaction {
                             const Normal3f &dndu, const Normal3f &dndv,
                             bool orientationIsAuthoritative);
     void ComputeScatteringFunctions(
-        const RayDifferential &ray, MemoryArena &arena,
+        const RayDifferential &ray, MemoryArena &arena, const Scene &scene,
         bool allowMultipleLobes = false,
         TransportMode mode = TransportMode::Radiance);
     void ComputeDifferentials(const RayDifferential &r) const;

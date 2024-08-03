@@ -58,7 +58,7 @@ class MetalMaterial : public Material {
                   bool remapRoughness);
     void ComputeScatteringFunctions(SurfaceInteraction *si, MemoryArena &arena,
                                     TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // MetalMaterial Private Data

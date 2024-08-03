@@ -65,7 +65,7 @@ class TranslucentMaterial : public Material {
     }
     void ComputeScatteringFunctions(SurfaceInteraction *si, MemoryArena &arena,
                                     TransportMode mode,
-                                    bool allowMultipleLobes) const;
+                                    bool allowMultipleLobes, const Scene &scene) const;
 
   private:
     // TranslucentMaterial Private Data
