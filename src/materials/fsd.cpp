@@ -437,6 +437,10 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     zDir = Normalize(-intr.wo);
     CoordinateSystem(zDir, &xDir, &yDir);
 
+    //
+    isect = p;
+    if (abs(zDir.x) < 0.5f) return;
+
     std::shared_ptr<KdTreeAccel> tree = std::dynamic_pointer_cast<KdTreeAccel>(scene.aggregate);
     bool flag = false;
     std::vector<Triangle> triangles;
@@ -457,6 +461,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         Normal3f n = Normal3f(Normalize(Cross(dp02, dp12)));
         if (triangle.reverseOrientation ^ triangle.transformSwapsHandedness)
             n = -n;
+        //LOG(INFO) << "Back Facing Test: Dot(n, zDir) = " << Dot(n, zDir);
         if (Dot(n, zDir) > 0) continue;
 
         // project triangle to virtual screen
@@ -474,11 +479,25 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     }
 
     area /= Pi * search_radius * search_radius;
-    //LOG(INFO) << "Computed area: " << area;
+    
+    /*
+    LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
     if (area < 1e-6 || area>1 - 1e-6) {
         //LOG(INFO) << "Early Exit";
         return;
     }
+    */
+    
+    
+    
+    // for some test
+    if (area < 1e-6 || area > 2 - 1e-3) {
+        return;
+    }
+    
+    //LOG(INFO) << "Computed area: " << area;
+    LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
+    
 
 
 
@@ -710,7 +729,7 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
     SampledSpectrum ss(.0f);
     ss.c[spectrumIndex] = 60000.f * result;
     //return ss;
-    return Spectrum(100.f*result);
+    return Spectrum(result);
 }
 
 /*
@@ -888,11 +907,12 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
         // handle sampled spectrum from the specific wavelength
         Float result = std::max(.0f, bsdf);
 
-        LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result;
+        LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
+            << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
         SampledSpectrum ss(.0f);
         ss.c[spectrumIndex] = 60000.f * result;
         //return ss;
-        return Spectrum(100.f*result);
+        return Spectrum(result);
         
     }
 

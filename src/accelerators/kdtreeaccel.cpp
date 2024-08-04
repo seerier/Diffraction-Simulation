@@ -40,6 +40,8 @@
 
 
 
+
+
 namespace pbrt {
 
 // KdTreeAccel Local Declarations
@@ -458,13 +460,14 @@ std::shared_ptr<KdTreeAccel> CreateKdTreeAccelerator(
 // gxzhao added
 
 std::vector<Triangle> KdTreeAccel::RadiusSearch(const Point3f &point, Float radius) const {
+    std::set<const Triangle *> addedTriangles;
     std::vector<Triangle> results;
-    radiusSearchRecursive(0, point, radius, results);
+    radiusSearchRecursive(0, point, radius, results, addedTriangles);
     return results;
 }
 
 void KdTreeAccel::radiusSearchRecursive(int nodeNum, const Point3f &point, Float radius,
-    std::vector<Triangle> &results) const {
+    std::vector<Triangle> &results, std::set<const Triangle*> &addedTriangles) const {
     if (nodeNum >= nAllocedNodes) return;
     const KdAccelNode *node = &nodes[nodeNum];
 
@@ -475,7 +478,11 @@ void KdTreeAccel::radiusSearchRecursive(int nodeNum, const Point3f &point, Float
             std::shared_ptr<GeometricPrimitive> geoPrim = std::dynamic_pointer_cast<GeometricPrimitive>(prim);
             std::shared_ptr<Triangle> triPtr = std::dynamic_pointer_cast<Triangle>(geoPrim->shape);
             if (triPtr) {
-                results.push_back(*triPtr);
+                if (addedTriangles.find(triPtr.get()) == addedTriangles.end()) {
+                    results.push_back(*triPtr);
+                    addedTriangles.insert(triPtr.get());
+                }
+                //results.push_back(*triPtr);
 
                 /*
                 const std::shared_ptr<TriangleMesh> &mesh = triPtr->mesh;
@@ -508,16 +515,22 @@ void KdTreeAccel::radiusSearchRecursive(int nodeNum, const Point3f &point, Float
                 std::shared_ptr<Triangle> triPtr = std::dynamic_pointer_cast<Triangle>(geoPrim->shape);
                 if (triPtr) {
 
-                    results.push_back(*triPtr);
-                    continue;
+                    if (addedTriangles.find(triPtr.get()) == addedTriangles.end()) {
+                        results.push_back(*triPtr);
+                        addedTriangles.insert(triPtr.get());
+                        continue;
+                    }
 
-                    /*
+                    //results.push_back(*triPtr);
+                    //continue;
+
+                    
                     // TODO: 三个顶点是否在球范围内代表三个bool值a, b, c.
                     // 如果a, b, c均为true，则三角形完全在球内，不用切割(Truncate)三条边
                     // 如果其中有1~2个为true，则三角形部分在球内，需要对三条边中的某些边进行切割
                     // 如果a, b, c均为false，则三角形完全不在球内，可以排除
 
-
+                    /*
                     const std::shared_ptr<TriangleMesh> &mesh = triPtr->mesh;
                     const Point3f &p0 = mesh->p[triPtr->v[0]];
                     //LOG(INFO) << "In radiusSearch: " << "p0 = " << p0 << ", point = " << point << ", distance = " << DistanceSquared(p0, point) << ", radiusSquared = " << radius * radius;
@@ -549,10 +562,10 @@ void KdTreeAccel::radiusSearchRecursive(int nodeNum, const Point3f &point, Float
         Float split = node->SplitPos();
 
         if (point[axis] + radius > split) {
-            radiusSearchRecursive(node->AboveChild(), point, radius, results);
+            radiusSearchRecursive(node->AboveChild(), point, radius, results, addedTriangles);
         }
         if (point[axis] - radius < split) {
-            radiusSearchRecursive(nodeNum + 1, point, radius, results);
+            radiusSearchRecursive(nodeNum + 1, point, radius, results, addedTriangles);
         }
     }
 }

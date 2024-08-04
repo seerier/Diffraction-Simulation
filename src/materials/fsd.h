@@ -105,6 +105,8 @@ public:
     Vector3f xDir, yDir, zDir;
     bool enabled = false;
 
+    Point3f isect;
+
     Float Ppl_A = .0f, sumPhat_j = .0f, Ppl_0 = .0f;
 };
 

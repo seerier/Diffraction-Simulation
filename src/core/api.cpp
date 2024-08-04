@@ -122,6 +122,7 @@
 #include "integrators/mypath.h"
 #include "integrators/myvolpath.h"
 #include "integrators/fsdtest.h"
+#include "integrators/position.h"
 #include "materials/fsd.h"
 
 #include <map>
@@ -1724,6 +1725,8 @@ Integrator *RenderOptions::MakeIntegrator() const {
         integrator = CreateMyVolPathIntegrator(IntegratorParams, sampler, camera);
     } else if (IntegratorName == "fsdtest") {
         integrator = CreateFsdTestIntegrator(IntegratorParams, sampler, camera);
+    } else if (IntegratorName == "position") {
+        integrator = CreatePositionIntegrator(IntegratorParams, sampler, camera);
     } else {
         Error("Integrator \"%s\" unknown.", IntegratorName.c_str());
         return nullptr;

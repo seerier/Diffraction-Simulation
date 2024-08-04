@@ -46,6 +46,7 @@
 
 // gxzhao
 #include "shapes/triangle.h"
+#include <set>
 
 
 
@@ -82,7 +83,7 @@ class KdTreeAccel : public Aggregate {
 
 
     void radiusSearchRecursive(int nodeNum, const Point3f &point, Float radius,
-        std::vector<Triangle> &results) const;
+        std::vector<Triangle> &results, std::set<const Triangle *> &addedTriangles) const;
 
 
 

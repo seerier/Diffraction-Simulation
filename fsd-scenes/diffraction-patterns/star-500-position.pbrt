@@ -1,5 +1,5 @@
-Integrator "bdpt"
-    "integer maxdepth" [ 7 ]
+Integrator "position"
+    #"integer maxdepth" [ 7 ]
 Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1  ]
 Sampler "sobol"
     "integer pixelsamples" [ 1 ]
@@ -7,7 +7,7 @@ Sampler "sobol"
 #    "float xwidth" [ 1 ]
 #    "float ywidth" [ 1 ]
 Film "image"
-    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\fsd-scenes\\diffraction-patterns\\image\\star-noReflection-500-1spp-noMedium.png"]
+    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\fsd-scenes\\diffraction-patterns\\image\\star-position-500.png"]
     "integer yresolution" [ 500 ]
     "integer xresolution" [ 500 ]
 Camera "perspective"
@@ -28,7 +28,7 @@ WorldBegin
 
 MakeNamedMaterial "LeftWall"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.1 0.1 0.1 ]
+    "rgb Kd" [ 0.00 0.00 0.00 ]
 MakeNamedMaterial "RightWall"
     "string type" [ "matte" ]
     "rgb Kd" [ 0.3 0.3 0.3 ]
