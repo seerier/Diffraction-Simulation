@@ -199,9 +199,11 @@ class BSDF {
     // BSDF Public Data
     const Float eta;
 
-  private:
-    // BSDF Private Methods
-    ~BSDF() {}
+  //protected:
+    // BSDF Public Methods
+    virtual ~BSDF() {}
+
+private:
 
     // BSDF Private Data
     const Normal3f ns, ng;

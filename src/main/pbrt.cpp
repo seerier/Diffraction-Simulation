@@ -38,6 +38,11 @@
 #include "parallel.h"
 #include <glog/logging.h>
 
+// for memory leak detection
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 using namespace pbrt;
 
 static void usage(const char *msg = nullptr) {
@@ -74,6 +79,13 @@ Reformatting options:
 
 // main program
 int main(int argc, char *argv[]) {
+    // 将内存泄漏检测结果输出到控制台
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //int *leak = new int[10]; // 故意泄漏内存
+
     google::InitGoogleLogging(argv[0]);
     FLAGS_stderrthreshold = 1; // Warning and above.
 
@@ -169,5 +181,9 @@ int main(int argc, char *argv[]) {
             pbrtParseFile(f);
     }
     pbrtCleanup();
+
+    //std::cout << "Detecting memory leaks: " << std::endl;
+    _CrtDumpMemoryLeaks(); // check for memory leaks
+
     return 0;
 }

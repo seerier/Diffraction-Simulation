@@ -385,8 +385,9 @@ void FsdMaterial::ComputeScatteringFunctions(SurfaceInteraction *si,
 
     BSDF *fsdBSDF = ARENA_ALLOC(arena, FsdBSDF)(*si, scene, si->bsdf, arena);
 
-    si->bsdf = fsdBSDF;
-
+    //BSDF *fsdBSDF = new FsdBSDF(*si, scene, si->bsdf, arena);
+    si->bsdf = fsdBSDF;//->scaledBxDF->bxdf
+    //delete fsdBSDF;
 
 
 }
@@ -417,15 +418,16 @@ FsdMaterial *CreateFsdMaterial(const TextureParams &mp, const std::shared_ptr<Ma
 FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     : BxDF(BxDFType(BSDF_TRANSMISSION | BSDF_DIFFUSE)) {
     //wavelength = random_float() * 300e-9f + 400e-9f;
-    //wavelength = 10e-5f;
-    wavelength = 1e-4f;
+    //wavelength = 5e-5f;
+    //wavelength = 1e-4f;
+    wavelength = 5.5e-5f;
 
-    /*
+    
     // sample wavelength and handle related computations
-    spectrumIndex = static_cast<int>(59.9999 * random_float());
+    //spectrumIndex = static_cast<int>(59.9999 * random_float());
     //wavelength = 400e-7f + 5e-7f * spectrumIndex;
-    wavelength = 400e-7f + 5e-7f * spectrumIndex;
-    */
+    //wavelength = 400e-7f + 5e-7f * spectrumIndex;
+    
     Float beam_sigma = wavelength * 25.f;
     Float search_radius = 3.f * beam_sigma;
     Float k = 2 * Pi / wavelength;
@@ -438,8 +440,8 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     CoordinateSystem(zDir, &xDir, &yDir);
 
     //
-    isect = p;
-    if (abs(zDir.x) < 0.5f) return;
+    //isect = p;
+    //if (abs(zDir.x) < 0.5f) return;
 
     std::shared_ptr<KdTreeAccel> tree = std::dynamic_pointer_cast<KdTreeAccel>(scene.aggregate);
     bool flag = false;
@@ -461,7 +463,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         Normal3f n = Normal3f(Normalize(Cross(dp02, dp12)));
         if (triangle.reverseOrientation ^ triangle.transformSwapsHandedness)
             n = -n;
-        //LOG(INFO) << "Back Facing Test: Dot(n, zDir) = " << Dot(n, zDir);
+        ////LOG(INFO) << "Back Facing Test: Dot(n, zDir) = " << Dot(n, zDir);
         if (Dot(n, zDir) > 0) continue;
 
         // project triangle to virtual screen
@@ -481,9 +483,9 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     area /= Pi * search_radius * search_radius;
     
     /*
-    LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
+    //LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
     if (area < 1e-6 || area>1 - 1e-6) {
-        //LOG(INFO) << "Early Exit";
+        ////LOG(INFO) << "Early Exit";
         return;
     }
     */
@@ -495,8 +497,8 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         return;
     }
     
-    //LOG(INFO) << "Computed area: " << area;
-    LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
+    ////LOG(INFO) << "Computed area: " << area;
+    //LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
     
 
 
@@ -522,11 +524,11 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         const auto cb = std::polar(b, k * z2);
 
         const auto P = Pjhat(ca, cb, e);
-        LOG(INFO) << "I ENTERED EDGE ADDING!!!";
+        //LOG(INFO) << "I ENTERED EDGE ADDING!!!";
         if (P == 0) return;
         this->sumPhat_j += P;
         this->edges.emplace_back(Edge{ e,v,ca,cb,P,this->sumPhat_j });
-        LOG(INFO) << "ADDED EDGE!!!";
+        //LOG(INFO) << "ADDED EDGE!!!";
         eavg += P * e.Length();
     };
 
@@ -596,7 +598,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         Point3f &mv2 = mesh->p[v2];
         
         if (fabs(mv1.x) > 0.9f || fabs(mv2.x) > 0.9f) {
-            LOG(INFO) << "hitten the box face. invalid!" << " : fabs(mesh->p[v1].x) = " << fabs(mv1.x) << ", fabs(mesh->p[v2].x) = " << fabs(mv2.x);
+            //LOG(INFO) << "hitten the box face. invalid!" << " : fabs(mesh->p[v1].x) = " << fabs(mv1.x) << ", fabs(mesh->p[v2].x) = " << fabs(mv2.x);
             return false;
         }
         
@@ -616,18 +618,18 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
                 (mt3 == mv1 && mt1 == mv2) ||
                 (mt3 == mv1 && mt2 == mv2)) {
                 if (tri.v == v) {
-                    LOG(INFO) << "ZGX SKIPPED!!!";
+                    //LOG(INFO) << "ZGX SKIPPED!!!";
                     continue;
                 }
 
-                LOG(INFO) << "Not SKIPPED!";
+                //LOG(INFO) << "Not SKIPPED!";
 
                 const Point3f &p0 = tri.mesh->p[t1];
                 const Point3f &p1 = tri.mesh->p[t2];
                 const Point3f &p2 = tri.mesh->p[t3];
 
                 if (fabs(p0.x) > 0.9f || fabs(p1.x) > 0.9f || fabs(p2.x) > 0.9f) {
-                    LOG(INFO) << "In loop: hitten the box face. invalid!" << "  : p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2;
+                    //LOG(INFO) << "In loop: hitten the box face. invalid!" << "  : p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2;
                     continue;
                 }
 
@@ -636,10 +638,10 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
                 if (tri.reverseOrientation ^ tri.transformSwapsHandedness)
                     n = -n;
 
-                LOG(INFO) << "In edgeBoundary: n = " << n << ", zDir = " << zDir << ", p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2 << ", Dot(zDir, n) = " << Dot(zDir, n);
+                //LOG(INFO) << "In edgeBoundary: n = " << n << ", zDir = " << zDir << ", p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2 << ", Dot(zDir, n) = " << Dot(zDir, n);
 
                 if (Dot(zDir, n) > 0) {
-                    LOG(INFO) << "Is edge boundary!!!";
+                    //LOG(INFO) << "Is edge boundary!!!";
                     return true;
                 }
                 else return false;
@@ -679,14 +681,14 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         bool b1 = edgeBoundary(triangles, triangle.v[2], triangle.v[0], zDir, triangle.v, triangle.mesh);
         bool b2 = edgeBoundary(triangles, triangle.v[0], triangle.v[1], zDir, triangle.v, triangle.mesh);
 
-        LOG(INFO) << "b0 = " << b0 << ", b1 = " << b1 << ", b2 = " << b2 << ", n = " << n << ", zDir = " << zDir << ", p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2
-            << ", dp0 = " << dp0 << ", dp1 = " << dp1 << ", dp2 = " << dp2 << ", a = " << a << ", b = " << b << ", c = " << c;
+        //LOG(INFO) << "b0 = " << b0 << ", b1 = " << b1 << ", b2 = " << b2 << ", n = " << n << ", zDir = " << zDir << ", p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2
+        //    << ", dp0 = " << dp0 << ", dp1 = " << dp1 << ", dp2 = " << dp2 << ", a = " << a << ", b = " << b << ", c = " << c;
 
         // add triangle
         addtri(b2, b1, b0, a, b, c, z0, z1, z2, 0);
     }
 
-    LOG(INFO) << "Edges size: " << edges.size() << ", Ppl_A: " << Ppl_A;
+    //LOG(INFO) << "Edges size: " << edges.size() << ", Ppl_A: " << Ppl_A;
     if (edges.size() == 0 || Ppl_A < 1e-2f) {
         Ppl_A = 0;
         return;
@@ -725,9 +727,9 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
     // handle sampled spectrum from the specific wavelength
     Float result = std::max(.0f, 1.f / (cosine * Ppl_A) * std::norm(bsdf));
 
-    LOG(INFO) << "FsdBxDF::f: " << "woWorld = " << wo << ", wiWorld = " << wiWorld << ", wiLocal = " << wiLocal << ", f = " << result;
-    SampledSpectrum ss(.0f);
-    ss.c[spectrumIndex] = 60000.f * result;
+    //LOG(INFO) << "FsdBxDF::f: " << "woWorld = " << wo << ", wiWorld = " << wiWorld << ", wiLocal = " << wiLocal << ", f = " << result;
+    //SampledSpectrum ss(.0f);
+    //ss.c[spectrumIndex] = 60.f * result;
     //return ss;
     return Spectrum(result);
 }
@@ -753,7 +755,7 @@ Float FsdBxDF::Pdf(const Vector3f &wo, const Vector3f &wi) const {
     if (wolocal.z <= 0) return 0;
     const auto xi = -Vector2f{ wolocal.x,wolocal.y };
     //const auto xi = Vector2f{ wolocal.x,wolocal.y };
-    LOG(INFO) << "FsdBxDF::Pdf: " << evalPdf(xi);
+    //LOG(INFO) << "FsdBxDF::Pdf: " << evalPdf(xi);
     return evalPdf(xi);
 }
 
@@ -789,7 +791,7 @@ Vector2f FsdBxDF::sampleEdge(const Edge &e, Float &pdf) const {
 
     // PDF
     pdf = evalPdf(xi);
-    LOG(INFO) << "FsdBxDF::sampleEdge: xi = " << xi << ", pdf = " << pdf;
+    //LOG(INFO) << "FsdBxDF::sampleEdge: xi = " << xi << ", pdf = " << pdf;
     return xi;
 }
 
@@ -844,7 +846,7 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
         //*wi = xi.x * xDir + xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
         *wi = -xi.x * xDir - xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
 
-        //LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
+        ////LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
 
         //return Spectrum(bsdf);
         return SampledSpectrum::FromSampled(&wavelength, &bsdf, 1);
@@ -867,8 +869,10 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
     } else {
         // SIR when multiple edges are present to improve IS quality
         static constexpr std::size_t N = 8;
-        Float bsdfs[N];
-        Float aggw[N];
+        //Float bsdfs[N];
+        //Float aggw[N];
+        Float bsdfs[N] = { 0.f };
+        Float aggw[N] = { 0.f };
         Vector2f xis[N];
 
         Float sumw = .0f;
@@ -902,15 +906,15 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
         //*wi = xi.x * xDir + xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
         *wi = -xi.x * xDir - xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
 
-        //LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
+        ////LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
 
         // handle sampled spectrum from the specific wavelength
         Float result = std::max(.0f, bsdf);
 
-        LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
-            << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
-        SampledSpectrum ss(.0f);
-        ss.c[spectrumIndex] = 60000.f * result;
+        //LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
+        //    << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
+        //SampledSpectrum ss(.0f);
+        //ss.c[spectrumIndex] = 60.f * result;
         //return ss;
         return Spectrum(result);
         

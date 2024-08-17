@@ -60,6 +60,9 @@
 #include <string.h>
 #include <glog/logging.h>
 
+//added
+//#include <crtdbg.h>
+
 // Platform-specific definitions
 #if defined(_WIN32) || defined(_WIN64)
   #define PBRT_IS_WINDOWS

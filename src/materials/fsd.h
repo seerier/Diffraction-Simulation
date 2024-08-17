@@ -101,7 +101,7 @@ public:
 
     std::vector<Edge> edges;
     Float wavelength;
-    int spectrumIndex;
+    int spectrumIndex = 30;
     Vector3f xDir, yDir, zDir;
     bool enabled = false;
 
@@ -135,15 +135,25 @@ public:
         Spectrum whiteSpectrum = RGBSpectrum::FromRGB(rgb);
         for (int i = 0; i < n; ++i) {
             Add(ARENA_ALLOC(arena, ScaledBxDF)(mbsdf->bxdfs[i], whiteSpectrum));
+            //Add(new ScaledBxDF(mbsdf->bxdfs[i], whiteSpectrum));
+            //Add(ARENA_ALLOC(arena, BxDF)(mbsdf->bxdfs[i]));
         }
     }
+
+    /*
+    ~FsdBSDF() {
+        for (int i = 0; i < MaxBxDFs; ++i) {
+            delete bxdfs[i];
+        }
+    }
+    */
 
     Spectrum f(const Vector3f &woW, const Vector3f &wiW,
         BxDFType flags) const override {
         
         // handle fsdBxDF
         if (fsdBxDF->enabled) { 
-            LOG(INFO) << "in FsdBSDF::f enabled: Dot(woWorld, wiWorld) = " << Dot(woW, wiW) << ", f = " << fsdBxDF->f(woW, wiW);
+            //LOG(INFO) << "in FsdBSDF::f enabled: Dot(woWorld, wiWorld) = " << Dot(woW, wiW) << ", f = " << fsdBxDF->f(woW, wiW);
             return fsdBxDF->f(woW, wiW); 
         }
         
@@ -183,7 +193,7 @@ public:
                 return 0.;
             }
             *wiWorld = wiW;
-            LOG(INFO) << "in FsdBSDF::Sample_f enabled: Dot(woWorld, wiWorld) = " << Dot(woWorld, *wiWorld) << ", pdf = " << *pdf << ", f = " << f << ", ratio = " << f.y() / *pdf;
+            //LOG(INFO) << "in FsdBSDF::Sample_f enabled: Dot(woWorld, wiWorld) = " << Dot(woWorld, *wiWorld) << ", pdf = " << *pdf << ", f = " << f << ", ratio = " << f.y() / *pdf;
             return f;
         }
         
@@ -264,7 +274,7 @@ public:
             //if (wo.z == 0) return 0.;
             Float pdf = 0.f;
             pdf = fsdBxDF->Pdf(woWorld, wiWorld);
-            LOG(INFO) << "in FsdBSDF::Pdf enabled: Dot(woWorld, wiWorld) = " << Dot(woWorld, wiWorld) << ", pdf = " << pdf;
+            //LOG(INFO) << "in FsdBSDF::Pdf enabled: Dot(woWorld, wiWorld) = " << Dot(woWorld, wiWorld) << ", pdf = " << pdf;
             return pdf;
         }
         
