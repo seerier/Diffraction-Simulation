@@ -79,12 +79,12 @@ Reformatting options:
 
 // main program
 int main(int argc, char *argv[]) {
-    // ½«ÄÚ´æÐ¹Â©¼ì²â½á¹ûÊä³öµ½¿ØÖÆÌ¨
-    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+    // ï¿½ï¿½ï¿½Ú´ï¿½Ð¹Â©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨
+    //_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+    //_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
 
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    //int *leak = new int[10]; // ¹ÊÒâÐ¹Â©ÄÚ´æ
+    //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //int *leak = new int[10]; // ï¿½ï¿½ï¿½ï¿½Ð¹Â©ï¿½Ú´ï¿½
 
     google::InitGoogleLogging(argv[0]);
     FLAGS_stderrthreshold = 1; // Warning and above.
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
     pbrtCleanup();
 
     //std::cout << "Detecting memory leaks: " << std::endl;
-    _CrtDumpMemoryLeaks(); // check for memory leaks
+    //_CrtDumpMemoryLeaks(); // check for memory leaks
 
     return 0;
 }

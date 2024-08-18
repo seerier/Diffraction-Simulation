@@ -14,11 +14,26 @@
 
 #include "rng.h"
 
+#include <complex>
+#include <queue>
+
 
 namespace pbrt {
 
 
-struct Edge;
+using c_t = std::complex<Float>;
+struct Edge {
+    Edge(const Vector2f &ei, const Point2f &vi, const c_t &ai, const c_t &bi, Float phat, Float phatAccum)
+        :e(ei), v(vi), a(ai), b(bi), Phat(phat), PhatAccum(phatAccum){}
+    Vector2f e;  // Edge vector
+    Point2f v;   // Mid point
+    c_t a, b;  // Beam amplitude at vertices
+    Float Phat; // Edge-diffracted power
+    Float PhatAccum;
+
+    ~Edge() {}
+};
+
 class KdTreeAccel;
 struct fsdPrecomputedTables;
 
@@ -75,7 +90,13 @@ FsdMaterial *CreateFsdMaterial(const TextureParams &mp, const std::shared_ptr<Ma
 // FsdBxDF class which handles BTDF calculation and sampling of diffraction effects.
 class FsdBxDF : public BxDF {
 public:
-    FsdBxDF(const SurfaceInteraction &intr, const Scene &scene);
+    FsdBxDF(const SurfaceInteraction &intr, const Scene &scene, MemoryArena &arena);
+
+    //~FsdBxDF() { std::cerr << "ZGX::~FsdBxDF(): destructor used!!!"; }
+    //~FsdBxDF() { Warning("ZGX::~FsdBxDF(): destructor used!!!"); }
+    ~FsdBxDF() { LOG(INFO) << "ZGX::~FsdBxDF(): destructor used!!!"; }
+
+    void build(const SurfaceInteraction &intr, const Scene &scene, MemoryArena &arena);
 
     Spectrum f(const Vector3f &wo, const Vector3f &wi) const;
     std::string ToString() const {
@@ -98,8 +119,18 @@ public:
 
     static fsdPrecomputedTables tables;
 
+    //std::vector<Edge> edges;
+    //std::vector<std::unique_ptr<Edge>> Myedges;
+    //using edges = *Myedges;
+    //std::vector<std::unique_ptr<Edge>> edges;
+    //std::vector<Edge *> edges;
 
-    std::vector<Edge> edges;
+    
+    int edgeNum = 0;
+    static PBRT_CONSTEXPR int MaxEdges = 1024;
+    Edge *edges[MaxEdges] = { nullptr };
+    
+
     Float wavelength;
     int spectrumIndex = 30;
     Vector3f xDir, yDir, zDir;
@@ -127,8 +158,9 @@ public:
 class FsdBSDF : public BSDF {
 public:
     // FsdBSDF Public Methods
+    /*
     FsdBSDF(const SurfaceInteraction &si, const Scene &scene, const BSDF *mbsdf, MemoryArena &arena)
-        :BSDF(si, eta), fsdBxDF(std::make_unique<FsdBxDF>(si, scene)) {
+        :BSDF(si), fsdBxDF(ARENA_ALLOC(arena, FsdBxDF)(si, scene, arena)) {
         int n = mbsdf->NumComponents();
 
         Float rgb[3] = { 1.0f, 1.0f, 1.0f };
@@ -139,6 +171,25 @@ public:
             //Add(ARENA_ALLOC(arena, BxDF)(mbsdf->bxdfs[i]));
         }
     }
+    */
+    FsdBSDF(const SurfaceInteraction &si, const Scene &scene, const BSDF *mbsdf, MemoryArena &arena)
+        :BSDF(si) {
+        int n = mbsdf->NumComponents();
+
+        Float rgb[3] = { 1.0f, 1.0f, 1.0f };
+        Spectrum whiteSpectrum = RGBSpectrum::FromRGB(rgb);
+        for (int i = 0; i < n; ++i) {
+            Add(ARENA_ALLOC(arena, ScaledBxDF)(mbsdf->bxdfs[i], whiteSpectrum));
+            //Add(new ScaledBxDF(mbsdf->bxdfs[i], whiteSpectrum));
+            //Add(ARENA_ALLOC(arena, BxDF)(mbsdf->bxdfs[i]));
+        }
+        fsdBxDF = ARENA_ALLOC(arena, FsdBxDF)(si, scene, arena);
+    }
+
+    //~FsdBSDF() { delete fsdBxDF; }
+    //~FsdBSDF() { Warning("~FsdBSDF(): destructor used!!!"); }
+    ~FsdBSDF() { LOG(INFO) << "~FsdBSDF(): destructor used!!!"; }
+    
 
     /*
     ~FsdBSDF() {
@@ -298,7 +349,8 @@ public:
 
 
     // FsdBSDF Private Data
-    std::unique_ptr<FsdBxDF> fsdBxDF;
+    //std::unique_ptr<FsdBxDF> fsdBxDF;
+    FsdBxDF *fsdBxDF;
 };
 
 

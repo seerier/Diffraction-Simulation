@@ -16,7 +16,6 @@
 #include "sampling.h"
 #include "samplers/random.h"
 
-#include <complex>
 #include <fstream>
 #include <array>
 #include <random>
@@ -59,7 +58,6 @@ inline T sinc(const T x) {
     return result;
 }
 // Alpha functions and Psi
-using c_t = std::complex<Float>;
 static inline Float alpha1(Float x, Float y) { return x == 0 ? 0 : y / (x * x + y * y) * Pi * (cos(x / 2) - sinc(x / 2)) / (2 * x); }
 static inline Float alpha2(Float x, Float y) { return x == 0 ? 0 : y / (x * x + y * y) * Pi * sinc(x / 2) / 2; }
 static inline Float chi(Float r2) { return sqrtf(1 - exp(-.5f * r2 / 3)); }
@@ -122,23 +120,16 @@ static inline Vector3f Sigmat(Point2f u1, Point2f u2, Point2f u3, Float ph1, Flo
 
 
 
-
-struct Edge {
-    Vector2f e;  // Edge vector
-    Point2f v;   // Mid point
-    c_t a, b;  // Beam amplitude at vertices
-    Float Phat; // Edge-diffracted power
-    Float PhatAccum;
-};
-
 inline Float FsdBxDF::eval(const Vector2f &xi) const {
     if (Ppl_A <= 0)
         return 0;
 
     const auto cosine = Float(1) / sqrtf(1 + Dot(xi, xi));
     c_t bsdf = {};
-    for (const auto &e : edges)
+    for (int i = 0; i < edgeNum; ++i) {
+        const Edge &e = *edges[i];
         bsdf += Psihat(e.a, e.b, e.e, e.v, 2 * Pi / wavelength, xi);
+    }
     return 1.f / (cosine * Ppl_A) * std::norm(bsdf);
 }
 
@@ -147,10 +138,44 @@ inline Float FsdBxDF::evalPdf(const Vector2f &xi) const {
         return 0;
 
     Float pdf = 0;
-    for (const auto &e : edges)
+    for (int i = 0; i < edgeNum; ++i) {
+        const Edge &e = *edges[i];
         pdf += Psihat2(e.a, e.b, e.e, 2 * Pi / wavelength, xi);
+    }
     return pdf / sumPhat_j;
 }
+
+
+
+
+
+/*
+inline Float FsdBxDF::eval(const Vector2f &xi) const {
+    if (Ppl_A <= 0)
+        return 0;
+
+    const auto cosine = Float(1) / sqrtf(1 + Dot(xi, xi));
+    c_t bsdf = {};
+    for (const auto &eP : edges) {
+        const Edge &e = *eP;
+        bsdf += Psihat(e.a, e.b, e.e, e.v, 2 * Pi / wavelength, xi);
+    }
+    return 1.f / (cosine * Ppl_A) * std::norm(bsdf);
+}
+
+inline Float FsdBxDF::evalPdf(const Vector2f &xi) const {
+    if (sumPhat_j == 0)
+        return 0;
+
+    Float pdf = 0;
+    for (const auto &eP : edges) {
+        const Edge &e = *eP;
+        pdf += Psihat2(e.a, e.b, e.e, 2 * Pi / wavelength, xi);
+    }
+    return pdf / sumPhat_j;
+}
+*/
+
 
 struct fsdPrecomputedTables {
     inline Vector2f importanceSampleCDF1(const Point3f &rand3) const {
@@ -415,19 +440,28 @@ FsdMaterial *CreateFsdMaterial(const TextureParams &mp, const std::shared_ptr<Ma
 
 
 // FsdBxDF Methods
-FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
+FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene, MemoryArena &arena)
     : BxDF(BxDFType(BSDF_TRANSMISSION | BSDF_DIFFUSE)) {
+    //LOG(INFO) << "edges.size() = " << edges.size();
+    //edges.reserve(512);
+    //edges.shrink_to_fit();
+    build(intr, scene, arena);
+}
+
+
+/*
+void FsdBxDF::build(const SurfaceInteraction &intr, const Scene &scene, MemoryArena &arena) {
     //wavelength = random_float() * 300e-9f + 400e-9f;
     //wavelength = 5e-5f;
     //wavelength = 1e-4f;
     wavelength = 5.5e-5f;
 
-    
+
     // sample wavelength and handle related computations
     //spectrumIndex = static_cast<int>(59.9999 * random_float());
     //wavelength = 400e-7f + 5e-7f * spectrumIndex;
     //wavelength = 400e-7f + 5e-7f * spectrumIndex;
-    
+
     Float beam_sigma = wavelength * 25.f;
     Float search_radius = 3.f * beam_sigma;
     Float k = 2 * Pi / wavelength;
@@ -473,7 +507,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         Point2f a(Dot(dp0, xDir), Dot(dp0, yDir));
         Point2f b(Dot(dp1, xDir), Dot(dp1, yDir));
         Point2f c(Dot(dp2, xDir), Dot(dp2, yDir));
-        
+
         // compute the area that triangle covers
         // S_abc = S_aob+S_boc+S_coa
         area += areaCircleTri(search_radius, a, b, c);
@@ -481,25 +515,19 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     }
 
     area /= Pi * search_radius * search_radius;
-    
-    /*
-    //LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
-    if (area < 1e-6 || area>1 - 1e-6) {
-        ////LOG(INFO) << "Early Exit";
-        return;
-    }
-    */
-    
-    
-    
+
+
+
+
+
     // for some test
     if (area < 1e-6 || area > 2 - 1e-3) {
         return;
     }
-    
+
     ////LOG(INFO) << "Computed area: " << area;
     //LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
-    
+
 
 
 
@@ -511,7 +539,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         const auto m = Vector2f{ e.y,-e.x };
         return Dot(m, v - c) > 0 ? 1 : -1;
     };
-    const auto addedge = [this, &eavg, &winding, k](const Point2f &u1, const Point2f &u2, Float z1, Float z2, Float a, Float b, const Point2f &tric) {
+    const auto addedge = [this, &eavg, &winding, k, &arena](const Point2f &u1, const Point2f &u2, Float z1, Float z2, Float a, Float b, const Point2f &tric) {
         const auto v = (u1 + u2) / Float(2);
         auto e = u2 - u1;
         if (winding(e, v, tric) == -1) {
@@ -527,7 +555,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         //LOG(INFO) << "I ENTERED EDGE ADDING!!!";
         if (P == 0) return;
         this->sumPhat_j += P;
-        this->edges.emplace_back(Edge{ e,v,ca,cb,P,this->sumPhat_j });
+        this->edges.push_back(ARENA_ALLOC(arena, Edge)(e, v, ca, cb, P, this->sumPhat_j));
         //LOG(INFO) << "ADDED EDGE!!!";
         eavg += P * e.Length();
     };
@@ -596,12 +624,12 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
         // handle a special case for cornell box scene
         Point3f &mv1 = mesh->p[v1];
         Point3f &mv2 = mesh->p[v2];
-        
+
         if (fabs(mv1.x) > 0.9f || fabs(mv2.x) > 0.9f) {
             //LOG(INFO) << "hitten the box face. invalid!" << " : fabs(mesh->p[v1].x) = " << fabs(mv1.x) << ", fabs(mesh->p[v2].x) = " << fabs(mv2.x);
             return false;
         }
-        
+
 
         // main logic
         for (const Triangle &tri : triangles) {
@@ -643,8 +671,7 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
                 if (Dot(zDir, n) > 0) {
                     //LOG(INFO) << "Is edge boundary!!!";
                     return true;
-                }
-                else return false;
+                } else return false;
             }
         }
         return false;
@@ -704,9 +731,311 @@ FsdBxDF::FsdBxDF(const SurfaceInteraction &intr, const Scene &scene)
     const auto Sigma0 = Sigmat_0 + Vector3f{ 1 / sqr(sigma_xi),0,1 / sqr(sigma_xi) };
     const auto detSigma0 = std::max<Float>(0, Sigma0.x * Sigma0.z - sqr(Sigma0.y));
     Ppl_0 = k * k / (18 * Pi) / sqrtf(detSigma0) * sqr(psi0);
+}
+*/
+
+
+
+
+void FsdBxDF::build(const SurfaceInteraction &intr, const Scene &scene, MemoryArena &arena) {
+    //wavelength = random_float() * 300e-9f + 400e-9f;
+    //wavelength = 5e-5f;
+    //wavelength = 1e-4f;
+    wavelength = 5.5e-5f;
+
+    //LOG(INFO) << "FsdBxDF::build()";
+
+
+    // sample wavelength and handle related computations
+    //spectrumIndex = static_cast<int>(59.9999 * random_float());
+    //wavelength = 400e-7f + 5e-7f * spectrumIndex;
+    //wavelength = 400e-7f + 5e-7f * spectrumIndex;
+
+    Float beam_sigma = wavelength * 25.f;
+    Float search_radius = 3.f * beam_sigma;
+    Float k = 2 * Pi / wavelength;
+
+    //edges.reserve(512);
+
+    // util
+    //RandomSampler r(1);
+
+    Point3f p = intr.p;
+    zDir = Normalize(-intr.wo);
+    CoordinateSystem(zDir, &xDir, &yDir);
+
+    //
+    //isect = p;
+    //if (abs(zDir.x) < 0.5f) return;
+
+    std::shared_ptr<KdTreeAccel> tree = std::dynamic_pointer_cast<KdTreeAccel>(scene.aggregate);
+    bool flag = false;
+    std::vector<Triangle> triangles;
+    if (tree) {
+        triangles = std::move(tree->RadiusSearch(intr.p, search_radius));
+    }
+
+    Float area = 0.f;
+
+    for (const Triangle &triangle : triangles) {
+        // get vertex positions
+        const Point3f &p0 = triangle.mesh->p[triangle.v[0]];
+        const Point3f &p1 = triangle.mesh->p[triangle.v[1]];
+        const Point3f &p2 = triangle.mesh->p[triangle.v[2]];
+
+        // TODO: continue when triangle is back facing
+        Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
+        Normal3f n = Normal3f(Normalize(Cross(dp02, dp12)));
+        if (triangle.reverseOrientation ^ triangle.transformSwapsHandedness)
+            n = -n;
+        ////LOG(INFO) << "Back Facing Test: Dot(n, zDir) = " << Dot(n, zDir);
+        if (Dot(n, zDir) > 0) continue;
+
+        // project triangle to virtual screen
+        Vector3f dp0 = p0 - p;
+        Vector3f dp1 = p1 - p;
+        Vector3f dp2 = p2 - p;
+        Point2f a(Dot(dp0, xDir), Dot(dp0, yDir));
+        Point2f b(Dot(dp1, xDir), Dot(dp1, yDir));
+        Point2f c(Dot(dp2, xDir), Dot(dp2, yDir));
+
+        // compute the area that triangle covers
+        // S_abc = S_aob+S_boc+S_coa
+        area += areaCircleTri(search_radius, a, b, c);
+
+    }
+
+    area /= Pi * search_radius * search_radius;
+
+
+
+
+    // for some test
+    if (area < 1e-6 || area > 2 - 1e-3) {
+        return;
+    }
+
+    ////LOG(INFO) << "Computed area: " << area;
+    //LOG(INFO) << "Computed area: " << area << ", wo = " << intr.wo << ", zDir = " << zDir << ", p = " << p << ", distance = " << Distance(p, Point3f(-0.4f, 1.f, 0.f));
+
+
+
+
+    // from fsdBSDF source code
+    Vector3f Sigmat_0 = { 0,0,0 };
+    Float psi0 = 0;
+    Float eavg = 0;
+    const auto winding = [](const Vector2f &e, const Point2f &v, const Point2f &c) -> Float {
+        const auto m = Vector2f{ e.y,-e.x };
+        return Dot(m, v - c) > 0 ? 1 : -1;
+    };
+    const auto addedge = [this, &eavg, &winding, k, &arena](const Point2f &u1, const Point2f &u2, Float z1, Float z2, Float a, Float b, const Point2f &tric) {
+        const auto v = (u1 + u2) / Float(2);
+        auto e = u2 - u1;
+        if (winding(e, v, tric) == -1) {
+            e = -e;
+            std::swap(a, b);
+            std::swap(z1, z2);
+        }
+
+        const auto ca = std::polar(a, k * z1);
+        const auto cb = std::polar(b, k * z2);
+
+        const auto P = Pjhat(ca, cb, e);
+        //LOG(INFO) << "I ENTERED EDGE ADDING!!!";
+        if (P == 0) return;
+        this->sumPhat_j += P;
+        //this->edges.emplace_back(Edge{ e,v,ca,cb,P,this->sumPhat_j });
+        //this->edges.emplace_back(e, v, ca, cb, P, this->sumPhat_j);
+        //this->edges.push_back(std::make_unique<Edge>(e, v, ca, cb, P, this->sumPhat_j));
+        //this->edges.push_back(std::make_unique<Edge>(e, v, ca, cb, P, this->sumPhat_j));
+        //this->edges.push_back(ARENA_ALLOC(arena, Edge)(e, v, ca, cb, P, this->sumPhat_j));
+        if (edgeNum < MaxEdges) {
+            edges[edgeNum] = ARENA_ALLOC(arena, Edge)(e, v, ca, cb, P, this->sumPhat_j);
+            ++edgeNum;
+        }
+        //alloca()
+        //LOG(INFO) << "ADDED EDGE!!!";
+        eavg += P * e.Length();
+    };
+
+    const auto phi = [sigma = beam_sigma](const Point2f p, const Float z) -> Float
+    { return expf(-.25f * (p.x * p.x + p.y * p.y + sqr(z)) / sqr(sigma)) / (sqrtf(2 * Pi) * sigma); };
+
+    const auto maxlength2 = sqr(beam_sigma);
+    std::function<void(bool, bool, bool, const Point2f &, const Point2f &, const Point2f &, Float, Float, Float, int)> addtri;
+    addtri = [&, beam_sigma, search_radius, maxlength2, max_depth = 5](bool edge12, bool edge13, bool edge23, const Point2f &u1, const Point2f &u2, const Point2f &u3, Float z1, Float z2, Float z3, int recr_depth) -> void {
+        if (areaCircleTri(search_radius, u1, u2, u3) < 1e-10f)
+            return;
+
+        const auto c = (u1 + u2 + u3) / 3.f;
+        const auto z0 = (z1 + z2 + z3) / 3.f;
+
+        const bool subdivide12 = (u2 - u1).LengthSquared() > maxlength2;
+        const bool subdivide13 = (u3 - u1).LengthSquared() > maxlength2;
+        const bool subdivide23 = (u3 - u2).LengthSquared() > maxlength2;
+        const auto sss = ((int)subdivide12) + ((int)subdivide13) + ((int)subdivide23) == 1;
+
+        // Subdivide triangles if needed. If only one edge is too long, subdivide along that edge only, otherwise split in the centre as well.
+        if (recr_depth < max_depth && (subdivide12 || subdivide13 || subdivide23)) {
+            if (subdivide12) {
+                addtri(edge12, sss && edge13, false, u1, (u1 + u2) / 2, sss ? u3 : c, z1, (z1 + z2) / 2, sss ? z3 : z0, recr_depth + 1);
+                addtri(edge12, false, sss && edge23, (u1 + u2) / 2, u2, sss ? u3 : c, (z1 + z2) / 2, z2, sss ? z3 : z0, recr_depth + 1);
+            } else if (!sss)
+                addtri(edge12, false, false, u1, u2, c, z1, z2, z0, recr_depth + 1);
+            if (subdivide13) {
+                addtri(sss && edge12, edge13, false, u1, sss ? u2 : c, (u1 + u3) / 2, z1, sss ? z2 : z0, (z1 + z3) / 2, recr_depth + 1);
+                addtri(false, edge13, sss && edge23, (u1 + u3) / 2, sss ? u2 : c, u3, (z1 + z3) / 2, sss ? z2 : z0, z3, recr_depth + 1);
+            } else if (!sss)
+                addtri(false, edge13, false, u1, c, u3, z1, z0, z3, recr_depth + 1);
+            if (subdivide23) {
+                addtri(false, sss && edge13, edge23, sss ? u1 : c, (u2 + u3) / 2, u3, sss ? z1 : z0, (z2 + z3) / 2, z3, recr_depth + 1);
+                addtri(sss && edge12, false, edge23, sss ? u1 : c, u2, (u2 + u3) / 2, sss ? z1 : z0, z2, (z2 + z3) / 2, recr_depth + 1);
+            } else if (!sss)
+                addtri(false, false, edge23, c, u2, u3, z0, z2, z3, recr_depth + 1);
+            return;
+        }
+
+        const auto ph1 = phi(u1, z1);
+        const auto ph2 = phi(u2, z2);
+        const auto ph3 = phi(u3, z3);
+
+        if (edge12) addedge(u2, u1, z2, z1, ph2, ph1, c);
+        if (edge13) addedge(u1, u3, z1, z3, ph1, ph3, c);
+        if (edge23) addedge(u3, u2, z3, z2, ph3, ph2, c);
+
+
+        // Bookkeeping
+        Ppl_A += Pt(u1, u2, u3, ph1, ph2, ph3);
+        Sigmat_0 += Sigmat(u1, u2, u3, ph1, ph2, ph3);
+        psi0 += Psi0t(u1, u2, u3, ph1, ph2, ph3);
+    };
+
+
+
+
+
+
+
+    // this method might be incorrect
+    // lambda funstion which determines if the edge is boundary
+    auto edgeBoundary = [](const std::vector<Triangle> &triangles, int v1, int v2, const Vector3f zDir, const int *v, const std::shared_ptr<TriangleMesh> &mesh) ->bool {
+        // handle a special case for cornell box scene
+        Point3f &mv1 = mesh->p[v1];
+        Point3f &mv2 = mesh->p[v2];
+
+        if (fabs(mv1.x) > 0.9f || fabs(mv2.x) > 0.9f) {
+            //LOG(INFO) << "hitten the box face. invalid!" << " : fabs(mesh->p[v1].x) = " << fabs(mv1.x) << ", fabs(mesh->p[v2].x) = " << fabs(mv2.x);
+            return false;
+        }
+
+
+        // main logic
+        for (const Triangle &tri : triangles) {
+            int t1 = tri.v[0];
+            int t2 = tri.v[1];
+            int t3 = tri.v[2];
+            Point3f &mt1 = tri.mesh->p[t1];
+            Point3f &mt2 = tri.mesh->p[t2];
+            Point3f &mt3 = tri.mesh->p[t3];
+            if ((mt1 == mv1 && mt2 == mv2) ||
+                (mt1 == mv1 && mt3 == mv2) ||
+                (mt2 == mv1 && mt1 == mv2) ||
+                (mt2 == mv1 && mt3 == mv2) ||
+                (mt3 == mv1 && mt1 == mv2) ||
+                (mt3 == mv1 && mt2 == mv2)) {
+                if (tri.v == v) {
+                    //LOG(INFO) << "ZGX SKIPPED!!!";
+                    continue;
+                }
+
+                //LOG(INFO) << "Not SKIPPED!";
+
+                const Point3f &p0 = tri.mesh->p[t1];
+                const Point3f &p1 = tri.mesh->p[t2];
+                const Point3f &p2 = tri.mesh->p[t3];
+
+                if (fabs(p0.x) > 0.9f || fabs(p1.x) > 0.9f || fabs(p2.x) > 0.9f) {
+                    //LOG(INFO) << "In loop: hitten the box face. invalid!" << "  : p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2;
+                    continue;
+                }
+
+                Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
+                Normal3f n = Normal3f(Normalize(Cross(dp02, dp12)));
+                if (tri.reverseOrientation ^ tri.transformSwapsHandedness)
+                    n = -n;
+
+                //LOG(INFO) << "In edgeBoundary: n = " << n << ", zDir = " << zDir << ", p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2 << ", Dot(zDir, n) = " << Dot(zDir, n);
+
+                if (Dot(zDir, n) > 0) {
+                    //LOG(INFO) << "Is edge boundary!!!";
+                    return true;
+                } else return false;
+            }
+        }
+        return false;
+    };
+
+    for (const Triangle &triangle : triangles) {
+        // get vertex positions
+        const Point3f &p0 = triangle.mesh->p[triangle.v[0]];
+        const Point3f &p1 = triangle.mesh->p[triangle.v[1]];
+        const Point3f &p2 = triangle.mesh->p[triangle.v[2]];
+
+        // TODO: continue when triangle is back facing
+        Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
+        Normal3f n = Normal3f(Normalize(Cross(dp02, dp12)));
+        if (triangle.reverseOrientation ^ triangle.transformSwapsHandedness)
+            n = -n;
+        if (Dot(n, zDir) > 0) continue;
+
+        // project triangle to virtual screen
+        Vector3f dp0 = p0 - p;
+        Vector3f dp1 = p1 - p;
+        Vector3f dp2 = p2 - p;
+        Point2f a(Dot(dp0, xDir), Dot(dp0, yDir));
+        Point2f b(Dot(dp1, xDir), Dot(dp1, yDir));
+        Point2f c(Dot(dp2, xDir), Dot(dp2, yDir));
+
+        // along z-axis
+        Float z0 = Dot(dp0, zDir);
+        Float z1 = Dot(dp1, zDir);
+        Float z2 = Dot(dp2, zDir);
+
+        // determine which edge is boundary
+        bool b0 = edgeBoundary(triangles, triangle.v[1], triangle.v[2], zDir, triangle.v, triangle.mesh);
+        bool b1 = edgeBoundary(triangles, triangle.v[2], triangle.v[0], zDir, triangle.v, triangle.mesh);
+        bool b2 = edgeBoundary(triangles, triangle.v[0], triangle.v[1], zDir, triangle.v, triangle.mesh);
+
+        //LOG(INFO) << "b0 = " << b0 << ", b1 = " << b1 << ", b2 = " << b2 << ", n = " << n << ", zDir = " << zDir << ", p0 = " << p0 << ", p1 = " << p1 << ", p2 = " << p2
+        //    << ", dp0 = " << dp0 << ", dp1 = " << dp1 << ", dp2 = " << dp2 << ", a = " << a << ", b = " << b << ", c = " << c;
+
+        // add triangle
+        addtri(b2, b1, b0, a, b, c, z0, z1, z2, 0);
+    }
+
+    //LOG(INFO) << "Edges size: " << edges.size() << ", Ppl_A: " << Ppl_A;
+    if (edgeNum == 0 || Ppl_A < 1e-2f) {
+        Ppl_A = 0;
+        return;
+    }
+
+    LOG(INFO) << "edgeNum = " << edgeNum << ", when enabled.";
+
+    enabled = true;
+
+    // from fsdBSDF source code
+    // Power in 0-th order lobe
+    eavg /= sumPhat_j;
+    const Float sigma_xi = sqrt(3) / (k * eavg);
+    Sigmat_0 *= 6 * k * k / psi0;
+    const auto Sigma0 = Sigmat_0 + Vector3f{ 1 / sqr(sigma_xi),0,1 / sqr(sigma_xi) };
+    const auto detSigma0 = std::max<Float>(0, Sigma0.x * Sigma0.z - sqr(Sigma0.y));
+    Ppl_0 = k * k / (18 * Pi) / sqrtf(detSigma0) * sqr(psi0);
 
 
 }
+
 
 
 Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
@@ -721,8 +1050,16 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
 
     const auto cosine = Float(1) / sqrtf(1 + Dot(wiScreen, wiScreen));
     c_t bsdf = {};
-    for (const auto &e : edges)
+    for (int i = 0; i < edgeNum; ++i) {
+        const Edge &e = *edges[i];
         bsdf += Psihat(e.a, e.b, e.e, e.v, 2 * Pi / wavelength, wiScreen);
+    }
+    /*
+    for (const auto &eP : edges) {
+        const Edge &e = *eP;
+        bsdf += Psihat(e.a, e.b, e.e, e.v, 2 * Pi / wavelength, wiScreen);
+    }
+    */
 
     // handle sampled spectrum from the specific wavelength
     Float result = std::max(.0f, 1.f / (cosine * Ppl_A) * std::norm(bsdf));
@@ -795,68 +1132,8 @@ Vector2f FsdBxDF::sampleEdge(const Edge &e, Float &pdf) const {
     return xi;
 }
 
+
 /*
-Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
-    const Point2f &sample, Float *pdf,
-    BxDFType *sampledType) const{
-//Float importanceSample(Vector3f &wo, Float &pdf, const bool SIR, Sampler *sampler) const {
-    Float bsdf;
-    Vector2f xi;
-    Sampler *sampler = new RandomSampler(16);
-
-    if (edges.size() == 1) {
-        xi = sampleEdge(edges[0], *pdf, sampler);
-        bsdf = *pdf > 0 ? eval(xi) : .0f;
-    } else {
-        // SIR when multiple edges are present to improve IS quality
-        static constexpr std::size_t N = 8;
-        Float bsdfs[N];
-        Float aggw[N];
-        Vector2f xis[N];
-
-        Float sumw = .0f;
-        for (std::size_t n = 0; n < N; ++n) {
-            const auto rand = sampler->Get1D() * sumPhat_j;
-            const auto &edgeit = std::lower_bound(edges.begin(), edges.end(), rand,
-                [](const auto &e, auto v) {
-                    return e.PhatAccum < v;
-                });
-            const auto &e = edgeit != edges.end() ? *edgeit : edges.back();
-
-            Float pdf;
-            xis[n] = sampleEdge(e, pdf, sampler);
-            bsdfs[n] = pdf > 0 ? eval(xis[n]) : .0f;
-            const auto w = pdf > 0 ? bsdfs[n] / pdf : .0f;
-            sumw += w;
-            aggw[n] = sumw;
-        }
-        const auto n = std::min<std::size_t>(N - 1,
-            std::lower_bound(&aggw[0], &aggw[N], sampler->Get1D() * sumw) - (&aggw[0])
-            );
-        xi = xis[n];
-        bsdf = bsdfs[n];
-        *pdf = sumw > 0 ? Float(N) * bsdf / sumw : .0f;
-    }
-
-    delete sampler;
-
-    if (*pdf > 0) {
-        // xi in exit frame
-        //*wi = Vector3f{ xi.x,xi.y,sqrtf(std::max<Float>(0,1 - Dot(xi,xi))) };
-        //*wi = xi.x * xDir + xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
-        *wi = -xi.x * xDir - xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
-
-        ////LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
-
-        //return Spectrum(bsdf);
-        return SampledSpectrum::FromSampled(&wavelength, &bsdf, 1);
-    }
-
-    *wi = Vector3f(1.0f, 0.f, 0.f);
-    return 0.;
-}
-*/
-
 Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
     const Point2f &sample, Float *pdf,
     BxDFType *sampledType) const {
@@ -864,7 +1141,7 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
     Vector2f xi;
 
     if (edges.size() == 1) {
-        xi = sampleEdge(edges[0], *pdf);
+        xi = sampleEdge(*edges[0], *pdf);
         bsdf = *pdf > 0 ? eval(xi) : .0f;
     } else {
         // SIR when multiple edges are present to improve IS quality
@@ -880,12 +1157,12 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
             const auto rand = sample.x * sumPhat_j;
             const auto &edgeit = std::lower_bound(edges.begin(), edges.end(), rand,
                 [](const auto &e, auto v) {
-                    return e.PhatAccum < v;
+                    return (*e).PhatAccum < v;
                 });
             const auto &e = edgeit != edges.end() ? *edgeit : edges.back();
 
             Float pdf;
-            xis[n] = sampleEdge(e, pdf);
+            xis[n] = sampleEdge(*e, pdf);
             bsdfs[n] = pdf > 0 ? eval(xis[n]) : .0f;
             const auto w = pdf > 0 ? bsdfs[n] / pdf : .0f;
             sumw += w;
@@ -923,8 +1200,77 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
     *wi = Vector3f(1.0f, 0.f, 0.f);
     return 0.;
 }
+*/
 
 
+
+Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
+    const Point2f &sample, Float *pdf,
+    BxDFType *sampledType) const {
+    Float bsdf;
+    Vector2f xi;
+
+    if (edgeNum == 1) {
+        xi = sampleEdge(*edges[0], *pdf);
+        bsdf = *pdf > 0 ? eval(xi) : .0f;
+    } else {
+        // SIR when multiple edges are present to improve IS quality
+        static constexpr std::size_t N = 8;
+        //Float bsdfs[N];
+        //Float aggw[N];
+        Float bsdfs[N] = { 0.f };
+        Float aggw[N] = { 0.f };
+        Vector2f xis[N];
+
+        Float sumw = .0f;
+        for (std::size_t n = 0; n < N; ++n) {
+            const auto rand = sample.x * sumPhat_j;
+            const auto &edgeit = std::lower_bound(edges, edges + edgeNum, rand,
+                [](const auto &e, auto v) {
+                    return (*e).PhatAccum < v;
+                });
+            const auto &e = (edgeit != edges + edgeNum) ? *edgeit : *(edges + edgeNum - 1);
+            //const auto &e = (edgeit != edges + edgeNum) ? *edgeit : (edgeNum!=0?*(edges + edgeNum - 1):*edgeit);
+
+            Float pdf;
+            xis[n] = sampleEdge(*e, pdf);
+            bsdfs[n] = pdf > 0 ? eval(xis[n]) : .0f;
+            const auto w = pdf > 0 ? bsdfs[n] / pdf : .0f;
+            sumw += w;
+            aggw[n] = sumw;
+        }
+        const auto n = std::min<std::size_t>(N - 1,
+            std::lower_bound(&aggw[0], &aggw[N], sample.y * sumw) - (&aggw[0])
+            );
+        xi = xis[n];
+        bsdf = bsdfs[n];
+        *pdf = sumw > 0 ? Float(N) * bsdf / sumw : .0f;
+    }
+
+
+    if (*pdf > 0) {
+        // xi in exit frame
+        //*wi = Vector3f{ xi.x,xi.y,sqrtf(std::max<Float>(0,1 - Dot(xi,xi))) };
+        //*wi = xi.x * xDir + xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
+        *wi = -xi.x * xDir - xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
+
+        ////LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
+
+        // handle sampled spectrum from the specific wavelength
+        Float result = std::max(.0f, bsdf);
+
+        //LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
+        //    << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
+        //SampledSpectrum ss(.0f);
+        //ss.c[spectrumIndex] = 60.f * result;
+        //return ss;
+        return Spectrum(result);
+
+    }
+
+    *wi = Vector3f(1.0f, 0.f, 0.f);
+    return 0.;
+}
 
 
 
