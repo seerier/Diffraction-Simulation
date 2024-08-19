@@ -741,15 +741,18 @@ void FsdBxDF::build(const SurfaceInteraction &intr, const Scene &scene, MemoryAr
     //wavelength = random_float() * 300e-9f + 400e-9f;
     //wavelength = 5e-5f;
     //wavelength = 1e-4f;
-    wavelength = 5.5e-5f;
+    //wavelength = 5.5e-5f;
 
     //LOG(INFO) << "FsdBxDF::build()";
 
-
+#ifdef PBRT_SAMPLED_SPECTRUM
     // sample wavelength and handle related computations
-    //spectrumIndex = static_cast<int>(59.9999 * random_float());
+    spectrumIndex = static_cast<int>(59.9999 * random_float());
+    wavelength = 400e-7f + 5e-7f * spectrumIndex;
     //wavelength = 400e-7f + 5e-7f * spectrumIndex;
-    //wavelength = 400e-7f + 5e-7f * spectrumIndex;
+#else
+    wavelength = 5.5e-5f;
+#endif
 
     Float beam_sigma = wavelength * 25.f;
     Float search_radius = 3.f * beam_sigma;
@@ -1020,7 +1023,7 @@ void FsdBxDF::build(const SurfaceInteraction &intr, const Scene &scene, MemoryAr
         return;
     }
 
-    LOG(INFO) << "edgeNum = " << edgeNum << ", when enabled.";
+    //LOG(INFO) << "edgeNum = " << edgeNum << ", when enabled.";
 
     enabled = true;
 
@@ -1054,12 +1057,6 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
         const Edge &e = *edges[i];
         bsdf += Psihat(e.a, e.b, e.e, e.v, 2 * Pi / wavelength, wiScreen);
     }
-    /*
-    for (const auto &eP : edges) {
-        const Edge &e = *eP;
-        bsdf += Psihat(e.a, e.b, e.e, e.v, 2 * Pi / wavelength, wiScreen);
-    }
-    */
 
     // handle sampled spectrum from the specific wavelength
     Float result = std::max(.0f, 1.f / (cosine * Ppl_A) * std::norm(bsdf));
@@ -1068,24 +1065,16 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
     //SampledSpectrum ss(.0f);
     //ss.c[spectrumIndex] = 60.f * result;
     //return ss;
+#ifdef PBRT_SAMPLED_SPECTRUM
+    SampledSpectrum ss(.0f);
+    ss.c[spectrumIndex] = 60.f * result;
+    return ss;
+#else
     return Spectrum(result);
+#endif
 }
 
-/*
-Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
-    const Point2f &sample, Float *pdf,
-    BxDFType *sampledType) const {
-    Vector3f w = CosineSampleHemisphere(sample);
-    *wi = w.x * xDir + w.y * yDir + w.z * zDir;
-    *pdf = AbsCosTheta(w) * InvPi;
-    return f(wo, *wi);
-}
 
-Float FsdBxDF::Pdf(const Vector3f &wo, const Vector3f &wi) const {
-    Vector3f w(Dot(wi, xDir), Dot(wi, yDir), Dot(wi, zDir));
-    return AbsCosTheta(w) * InvPi;
-}
-*/
 
 Float FsdBxDF::Pdf(const Vector3f &wo, const Vector3f &wi) const {
     const Vector3f wolocal(Dot(wi, xDir), Dot(wi, yDir), Dot(wi, zDir));
@@ -1133,74 +1122,7 @@ Vector2f FsdBxDF::sampleEdge(const Edge &e, Float &pdf) const {
 }
 
 
-/*
-Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
-    const Point2f &sample, Float *pdf,
-    BxDFType *sampledType) const {
-    Float bsdf;
-    Vector2f xi;
 
-    if (edges.size() == 1) {
-        xi = sampleEdge(*edges[0], *pdf);
-        bsdf = *pdf > 0 ? eval(xi) : .0f;
-    } else {
-        // SIR when multiple edges are present to improve IS quality
-        static constexpr std::size_t N = 8;
-        //Float bsdfs[N];
-        //Float aggw[N];
-        Float bsdfs[N] = { 0.f };
-        Float aggw[N] = { 0.f };
-        Vector2f xis[N];
-
-        Float sumw = .0f;
-        for (std::size_t n = 0; n < N; ++n) {
-            const auto rand = sample.x * sumPhat_j;
-            const auto &edgeit = std::lower_bound(edges.begin(), edges.end(), rand,
-                [](const auto &e, auto v) {
-                    return (*e).PhatAccum < v;
-                });
-            const auto &e = edgeit != edges.end() ? *edgeit : edges.back();
-
-            Float pdf;
-            xis[n] = sampleEdge(*e, pdf);
-            bsdfs[n] = pdf > 0 ? eval(xis[n]) : .0f;
-            const auto w = pdf > 0 ? bsdfs[n] / pdf : .0f;
-            sumw += w;
-            aggw[n] = sumw;
-        }
-        const auto n = std::min<std::size_t>(N - 1,
-            std::lower_bound(&aggw[0], &aggw[N], sample.y * sumw) - (&aggw[0])
-            );
-        xi = xis[n];
-        bsdf = bsdfs[n];
-        *pdf = sumw > 0 ? Float(N) * bsdf / sumw : .0f;
-    }
-
-
-    if (*pdf > 0) {
-        // xi in exit frame
-        //*wi = Vector3f{ xi.x,xi.y,sqrtf(std::max<Float>(0,1 - Dot(xi,xi))) };
-        //*wi = xi.x * xDir + xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
-        *wi = -xi.x * xDir - xi.y * yDir + sqrtf(std::max<Float>(0, 1 - Dot(xi, xi))) * zDir;
-
-        ////LOG(INFO) << "FsdBxDF::Sample_f: wi = " << *wi << ", pdf = " << *pdf;
-
-        // handle sampled spectrum from the specific wavelength
-        Float result = std::max(.0f, bsdf);
-
-        //LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
-        //    << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
-        //SampledSpectrum ss(.0f);
-        //ss.c[spectrumIndex] = 60.f * result;
-        //return ss;
-        return Spectrum(result);
-        
-    }
-
-    *wi = Vector3f(1.0f, 0.f, 0.f);
-    return 0.;
-}
-*/
 
 
 
@@ -1261,11 +1183,13 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
 
         //LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
         //    << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
-        //SampledSpectrum ss(.0f);
-        //ss.c[spectrumIndex] = 60.f * result;
-        //return ss;
+#ifdef PBRT_SAMPLED_SPECTRUM
+        SampledSpectrum ss(.0f);
+        ss.c[spectrumIndex] = 60.f * result;
+        return ss;
+#else
         return Spectrum(result);
-
+#endif
     }
 
     *wi = Vector3f(1.0f, 0.f, 0.f);
