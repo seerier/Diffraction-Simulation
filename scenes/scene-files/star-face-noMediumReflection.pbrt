@@ -9,10 +9,10 @@ Sampler "sobol"
 #    "float ywidth" [ 1 ]
 Film "image"
 
-    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\scenes\\image\\fsdBSDF-star-white-Nofiltered-2-1spp-250000.png"]
+    "string filename" ["../../image/fsdBSDF-star-white-Nofiltered-2-1spp-250000.png"]
 
-    "integer yresolution" [ 2 ]
-    "integer xresolution" [ 2 ]
+    "integer yresolution" [ 2000 ]
+    "integer xresolution" [ 2000 ]
 Camera "perspective"
     "float fov" [ 79.5 ]
 

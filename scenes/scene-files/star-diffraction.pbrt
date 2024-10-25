@@ -7,7 +7,7 @@ PixelFilter "triangle"
     "float xwidth" [ 1 ]
     "float ywidth" [ 1 ]
 Film "image"
-    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\fsd-scenes\\diffraction-patterns\\image\\star-wide-2000-1spp-filtered.exr"]
+    "string filename" ["D:\\Coding\\Github-Repo\\Diffraction-Simulation\\image\\star-wide-2000-1spp-filtered.exr"]
     "integer yresolution" [ 2000 ]
     "integer xresolution" [ 2000 ]
 Camera "perspective"
