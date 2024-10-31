@@ -1,17 +1,20 @@
 Integrator "bdpt"
-    "integer maxdepth" [ 7 ]
-Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1  ]
+    "integer maxdepth" [ 16 ]
+
+Transform [ 0 -0 1 -0 -0 1 -0 -0 1 -0 -0 -0 -0. -1 +0.2 1  ]
 Sampler "sobol"
     "integer pixelsamples" [ 1 ]
 PixelFilter "triangle"
     "float xwidth" [ 1 ]
     "float ywidth" [ 1 ]
 Film "image"
-    "string filename" ["../../image/star-wide-2000-1spp-filtered.png"]
+
+    "string filename" ["..\\..\\image\\fsd-circdiamond-colorful-filtered-2000-1spp-150000.png"]
+
     "integer yresolution" [ 2000 ]
     "integer xresolution" [ 2000 ]
 Camera "perspective"
-    "float fov" [ 19.5 ]
+    "float fov" [ 79.5 ]
 
 Accelerator "kdtree"
 
@@ -22,33 +25,36 @@ MakeNamedMedium "medium"
     "float g" [0.5]
     "float scale" [.01]
 
-MediumInterface "" "medium"
+#MediumInterface "" "medium"
 
 WorldBegin
 
 MakeNamedMaterial "LeftWall"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.1 0.1 0.1 ]
+    "rgb Kd" [ 0.00 0.00 0.00 ]
 MakeNamedMaterial "RightWall"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.5 0.5 0.5 ]
+    "rgb Kd" [ 0.3 0.3 0.3 ]
 MakeNamedMaterial "Floor"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.05 0.05 0.05 ]
+    "rgb Kd" [ 0.0 0.0 0.0 ]
 MakeNamedMaterial "Ceiling"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.05 0.05 0.05 ]
+    "rgb Kd" [ 0.0 0.0 0.0 ]
 MakeNamedMaterial "BackWall"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.05 0.05 0.05 ]
+    "rgb Kd" [ 0.00 0.00 0.00 ]
 
 MakeNamedMaterial "Light"
     "string type" [ "matte" ]
     "rgb Kd" [ 0 0 0 ]
 
+#MakeNamedMaterial "screen"
+#        "string type" "matte"
+#        "color Kd" [.0125 .0125 .0125]
 MakeNamedMaterial "screen"
         "string type" "matte"
-        "color Kd" [.1 .1 .1]
+        "color Kd" [.0 .0 .0]
 
 
 AttributeBegin
@@ -118,17 +124,17 @@ Rotate 90 0 1 0
 Rotate 90 0 0 1
 
 
-Include "../geometry/star.pbrt"
+Include "../geometry/circdiamond.pbrt"
 
 AttributeEnd
 
 AttributeBegin
     LightSource "spot"
         "point from" [-0.98 1 0]
-        "point to" [5 1 0]
-        "rgb I" [100000 100000 100000]
-        "float coneangle" [12.4]
-        "float conedeltaangle" [3.1]
+        "point to" [-0.4 1 0]
+        "rgb I" [150000 150000 150000]
+        "float coneangle" [1.12]
+        "float conedeltaangle" [0.28]
     NamedMaterial "Light"
 AttributeEnd
 

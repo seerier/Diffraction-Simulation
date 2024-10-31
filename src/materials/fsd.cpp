@@ -331,6 +331,18 @@ void FsdBxDF::build(const SurfaceInteraction &intr, const Scene &scene, MemoryAr
     wavelength = 5.5e-5f;
 #endif
 
+    /*
+    spectrumIndex = static_cast<int>(2.99999 * random_float());
+    if (spectrumIndex == 0) {
+        wavelength = 465e-7f;
+    } else if (spectrumIndex == 1) {
+        wavelength = 530e-7f;
+    } else {
+        wavelength = 630e-7f;
+    }
+    */
+    
+
     Float beam_sigma = wavelength * 25.f;
     Float search_radius = 3.f * beam_sigma;
     Float k = 2 * Pi / wavelength;
@@ -642,6 +654,22 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
     //SampledSpectrum ss(.0f);
     //ss.c[spectrumIndex] = 60.f * result;
     //return ss;
+
+    /*
+    // rgb rendering
+    if (spectrumIndex == 2) {
+        Float rgb[3] = {3.f * result, 0, 0};
+        return RGBSpectrum::FromRGB(rgb);
+    } else if (spectrumIndex == 1) {
+        Float rgb[3] = {0, 3.f * result, 0};
+        return RGBSpectrum::FromRGB(rgb);
+    } else {
+        Float rgb[3] = {0, 0, 3.f * result};
+        return RGBSpectrum::FromRGB(rgb);
+    }
+    */
+    
+
 #ifdef PBRT_SAMPLED_SPECTRUM
     SampledSpectrum ss(.0f);
     ss.c[spectrumIndex] = 60.f * result;
@@ -760,6 +788,24 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
 
         //LOG(INFO) << "FsdBxDF::Sample_f: " << "woWorld = " << wo << ", wiWorld = " << *wi << ", Dot(woWorld, wiWorld) = " << Dot(wo, *wi) << ", f = " << result
         //    << ", xDir = " << xDir << ", yDir = " << yDir << ", zDir = " << zDir << ", p = " << isect;
+
+        /*
+        // rgb rendering
+        if (spectrumIndex == 2) {
+            Float rgb[3] = {3.f * result, 0, 0};
+            return RGBSpectrum::FromRGB(rgb);
+        } else if (spectrumIndex == 1) {
+            Float rgb[3] = {0, 3.f * result, 0};
+            return RGBSpectrum::FromRGB(rgb);
+        } else {
+            Float rgb[3] = {0, 0, 3.f * result};
+            return RGBSpectrum::FromRGB(rgb);
+        }
+        */
+        
+
+
+
 #ifdef PBRT_SAMPLED_SPECTRUM
         SampledSpectrum ss(.0f);
         ss.c[spectrumIndex] = 60.f * result;
@@ -769,7 +815,7 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
 #endif
     }
 
-    *wi = Vector3f(1.0f, 0.f, 0.f);
+    *wi = Vector3f(.0f, 0.f, 1.f);
     return 0.;
 }
 

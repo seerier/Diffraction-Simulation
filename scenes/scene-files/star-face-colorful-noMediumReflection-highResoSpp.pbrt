@@ -3,13 +3,13 @@ Integrator "bdpt"
 
 Transform [ 0 -0 1 -0 -0 1 -0 -0 1 -0 -0 -0 -0. -1 +0.2 1  ]
 Sampler "sobol"
-    "integer pixelsamples" [ 8 ]
-PixelFilter "triangle"
-    "float xwidth" [ 1 ]
-    "float ywidth" [ 1 ]
+    "integer pixelsamples" [ 32 ]
+#PixelFilter "triangle"
+#    "float xwidth" [ 1 ]
+#    "float ywidth" [ 1 ]
 Film "image"
 
-    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\scenes\\image\\fsdBSDF-star-colorful-filtered-2000-8spp-150000.png"]
+    "string filename" ["../..\\..\\image/fsd-star-colorful-nofiltered-2000-32spp-150000.png"]
 
     "integer yresolution" [ 2000 ]
     "integer xresolution" [ 2000 ]
