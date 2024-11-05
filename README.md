@@ -2,13 +2,13 @@
 
 ## About ##
 
-This is an effort on wave-optical light transport. In order to simulate the diffraction phenomenon, I took [A Free Space Diffraction BSDF](https://github.com/ssteinberg/fsdBSDFpaper) as a reference and rendered some beautiful images:)
+This is my exploration of wave-optical light transport. In order to simulate the diffraction phenomenon, I took [A Free Space Diffraction BSDF](https://github.com/ssteinberg/fsdBSDFpaper) as a reference and rendered some beautiful images:)
 
 ## Compilation ##
 
 This implementation is built on the PBRT-v3 framework. Therefore, you can follow the [PBRT-v3 build instructions](https://github.com/mmp/pbrt-v3) to compile this project.
 
-
+## Images ##
 
 
 
