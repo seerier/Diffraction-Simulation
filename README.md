@@ -1,3 +1,24 @@
+# Diffraction Simulation #
+
+## About ##
+
+This is an effort on wave-optical light transport. In order to simulate the diffraction phenomenon, I took [A Free Space Diffraction BSDF](https://github.com/ssteinberg/fsdBSDFpaper) as a reference and rendered some beautiful images:)
+
+## Compilation ##
+
+This implementation is built on the PBRT-v3 framework. Therefore, you can follow the [PBRT-v3 build instructions](https://github.com/mmp/pbrt-v3) to compile this project.
+
+
+
+
+
+
+
+It simulates full light transport through arbitrary geometry based on unbiased integration of the [rendering equation](http://en.wikipedia.org/wiki/Rendering_equation). To do this, Tungsten supports various light transport algorithms such as bidirectional path tracing, progressive photon mapping, primary sample space metropolis light transport and more.
+
+Tungsten is written in C++11 and makes use of Intel's high-performance geometry intersection library [embree](http://embree.github.io/). Tungsten takes full advantage of multicore systems and tries to offer good performance through frequent benchmarking and optimization. At least SSE3 support is required to run the renderer.
+
+
 pbrt, Version 3
 ===============
 
