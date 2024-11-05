@@ -9,11 +9,19 @@ This is my exploration of wave-optical light transport. In order to simulate the
 This implementation is built on the PBRT-v3 framework. Therefore, you can follow the [PBRT-v3 build instructions](https://github.com/mmp/pbrt-v3) to compile this project.
 
 ## Images ##
-The whole scene is:
+### The whole box scene ###
 ![box-scene](gallery/box-tricolor-512spp.png)
 
+### Diffraction patterns from different apertures ###
+![circdiamond](gallery/Circdiamond-unicolor-16spp.png)
+![star](gallery/Star-unicolor-16spp.png)
+![fancyslits](gallery/Fancyslits-unicolor-16spp.png)
 
+### RGB rendering for tricolor light composed of 465nm, 530nm and 630nm ###
+![RGB Rendering](gallery/Star-Three-Wavelengths-128spp.png)
 
+### Spectral rendering with uniform wavelength sampling ###
+![Spectral Rendering](gallery/Star-Spectral-Rendering-128spp.png)
 
 It simulates full light transport through arbitrary geometry based on unbiased integration of the [rendering equation](http://en.wikipedia.org/wiki/Rendering_equation). To do this, Tungsten supports various light transport algorithms such as bidirectional path tracing, progressive photon mapping, primary sample space metropolis light transport and more.
 
