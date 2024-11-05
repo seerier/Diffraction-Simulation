@@ -1,7 +1,5 @@
 # Diffraction Simulation #
 
-## About ##
-
 This is my exploration of wave-optical light transport. In order to simulate the diffraction phenomenon, I took [A Free Space Diffraction BSDF](https://github.com/ssteinberg/fsdBSDFpaper) as a reference and rendered some beautiful images:)
 
 ## Compilation ##
@@ -23,56 +21,6 @@ This implementation is built on the PBRT-v3 framework. Therefore, you can follow
 ### Spectral rendering with uniform wavelength sampling ###
 ![Spectral Rendering](gallery/Star-Spectral-Rendering-128spp.png)
 
-It simulates full light transport through arbitrary geometry based on unbiased integration of the [rendering equation](http://en.wikipedia.org/wiki/Rendering_equation). To do this, Tungsten supports various light transport algorithms such as bidirectional path tracing, progressive photon mapping, primary sample space metropolis light transport and more.
-
-Tungsten is written in C++11 and makes use of Intel's high-performance geometry intersection library [embree](http://embree.github.io/). Tungsten takes full advantage of multicore systems and tries to offer good performance through frequent benchmarking and optimization. At least SSE3 support is required to run the renderer.
-
-
-pbrt, Version 3
-===============
-
-[![Build Status](https://travis-ci.org/mmp/pbrt-v3.svg?branch=master)](https://travis-ci.org/mmp/pbrt-v3)
-[![Build status](https://ci.appveyor.com/api/projects/status/mlm9g91ejxlcn67s/branch/master?svg=true)](https://ci.appveyor.com/project/mmp/pbrt-v3/branch/master)
-
-This repository holds the source code to the version of pbrt that is
-described in the third edition of *Physically Based Rendering: From
-Theory to Implementation*, by [Matt Pharr](http://pharr.org/matt), [Wenzel
-Jakob](http://www.mitsuba-renderer.org/~wenzel/), and Greg Humphreys.  As
-before, the code is available under the BSD license.
-
-The [pbrt website](http://pbrt.org) has general information about both the
-*Physically Based Rendering* book as well as many other resources for pbrt.
-As of October 2018, the full [text of the book](http://www.pbr-book.org) is
-now available online, for free.
-
-Example scenes
---------------
-
-Over 8GB of example scenes are available for download. (Many are new and
-weren't available with previous versions of pbrt.)  See the [pbrt-v3 scenes
-page](http://pbrt.org/scenes-v3.html) on the pbrt website for information
-about how to download them.
-
-After downloading them, see the `README.md.html` file in the scene
-distribution for more information about the scenes and preview images.
-
-Additional resources
---------------------
-
-* There is a [pbrt Google
-  Groups](https://groups.google.com/forum/#!forum/pbrt) mailing list that can
-  be a helpful resource.
-* Please see the [User's Guide](http://pbrt.org/users-guide.html) for more
-  information about how to check out and build the system as well as various
-  additional information about working with pbrt.
-* Should you find a bug in pbrt, please report it in the [bug
-  tracker](https://github.com/mmp/pbrt-v3/issues).
-* Please report any errors you find in the *Physically Based Rendering*
-  book to authors@pbrt.org.
-
-Note: we tend to let bug reports and book errata emails pile up for a few
-months for processing them in batches. Don't think we don't appreciate
-them. :-)
 
 Building pbrt
 -------------
