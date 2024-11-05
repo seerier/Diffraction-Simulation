@@ -17,7 +17,7 @@ This implementation is built on the PBRT-v3 framework. Therefore, you can follow
 ![star](gallery/Star-unicolor-16spp.png)
 ![fancyslits](gallery/Fancyslits-unicolor-16spp.png)
 
-### RGB rendering for tricolor light composed of 465nm, 530nm and 630nm ###
+### RGB rendering for tricolor light composed of wavelengths at 465nm, 530nm and 630nm ###
 ![RGB Rendering](gallery/Star-Three-Wavelengths-128spp.png)
 
 ### Spectral rendering with uniform wavelength sampling ###
