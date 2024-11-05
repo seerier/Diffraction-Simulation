@@ -1,1 +1,0 @@
-"E:\Coding\github_repo\fsd\fsd-pbrt\out\build\x64-Debug\pbrt.exe" "E:\Coding\github_repo\fsd\fsd-pbrt\scenes\scene-files\star-face-noMediumReflection.pbrt" --nthreads 12 --logdir E:\Coding\github_repo\fsd\fsd-pbrt\scenes\log

@@ -1,15 +1,17 @@
 Integrator "bdpt"
-    "integer maxdepth" [ 7 ]
+    "integer maxdepth" [ 16 ]
 Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1  ]
 Sampler "sobol"
-    "integer pixelsamples" [ 2 ]
-#PixelFilter "triangle"
-#    "float xwidth" [ 1 ]
-#    "float ywidth" [ 1 ]
+    "integer pixelsamples" [ 128 ]
+
+PixelFilter "triangle"
+    "float xwidth" [ 1 ]
+    "float ywidth" [ 1 ]
 Film "image"
-    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\scenes\\image\\star-noDiffraction-noFiltered-lowAngle-1-1spp.png"]
-    "integer yresolution" [ 1 ]
-    "integer xresolution" [ 1 ]
+    "string filename" ["../../../image/box-scene.png"]
+
+    "integer yresolution" [ 2000 ]
+    "integer xresolution" [ 2000 ]
 Camera "perspective"
     "float fov" [ 19.5 ]
 
@@ -37,7 +39,7 @@ MakeNamedMaterial "Floor"
     "rgb Kd" [ 0.01 0.01 0.01 ]
 MakeNamedMaterial "Ceiling"
     "string type" [ "matte" ]
-    "rgb Kd" [ 0.05 0.05 0.05 ]
+    "rgb Kd" [ 0.01 0.01 0.01 ]
 MakeNamedMaterial "BackWall"
     "string type" [ "matte" ]
     "rgb Kd" [ 0.002 0.002 0.002 ]
@@ -108,7 +110,8 @@ AttributeEnd
 
 #fsd
 AttributeBegin
-NamedMaterial "screen"
+    Material "fsd"
+        "string nestedmaterial" "screen"
 
 
 Translate -0.4 1 0
@@ -125,7 +128,7 @@ AttributeBegin
     LightSource "spot"
         "point from" [-0.98 1 0]
         "point to" [5 1 0]
-        "rgb I" [100000 100000 100000]
+        "rgb I" [150000 150000 150000]
         "float coneangle" [1.12]
         "float conedeltaangle" [0.28]
     NamedMaterial "Light"

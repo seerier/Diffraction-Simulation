@@ -12,7 +12,7 @@ Sampler "sobol"
 Film "image"
 
 
-    "string filename" ["../..\\..\\image/fsd-star-colorful-nofiltered-2000-32spp-150000.png"]
+    "string filename" ["../../../image/star-pattern-scene.png"]
 
 
     "integer yresolution" [ 2000 ]

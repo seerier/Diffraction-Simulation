@@ -9,8 +9,11 @@ src/objs
 out
 build
 
+#
 CMakeSettings.json
 fsd-scenes
 scenes/image
 scenes/log
+scenes/debug-tools
 image
+images
