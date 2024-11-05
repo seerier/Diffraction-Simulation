@@ -3,11 +3,13 @@ Integrator "bdpt"
 Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1  ]
 Sampler "sobol"
     "integer pixelsamples" [ 128 ]
-#PixelFilter "triangle"
-#    "float xwidth" [ 1 ]
-#    "float ywidth" [ 1 ]
+
+PixelFilter "triangle"
+    "float xwidth" [ 1 ]
+    "float ywidth" [ 1 ]
 Film "image"
-    "string filename" ["E:\\Coding\\github_repo\\fsd\\fsd-pbrt\\scenes\\image\\star-noFiltered-lowAngle-2000-128spp-150000-noLeak.png"]
+    "string filename" ["../../../image/star-Filtered-rgb-lowAngle-2000-128spp-150000.png"]
+
     "integer yresolution" [ 2000 ]
     "integer xresolution" [ 2000 ]
 Camera "perspective"

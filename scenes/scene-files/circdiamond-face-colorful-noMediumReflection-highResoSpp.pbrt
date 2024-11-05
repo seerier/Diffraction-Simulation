@@ -3,22 +3,18 @@ Integrator "bdpt"
 
 Transform [ 0 -0 1 -0 -0 1 -0 -0 1 -0 -0 -0 -0. -1 +0.2 1  ]
 Sampler "sobol"
-
-    "integer pixelsamples" [ 1 ]
-
+    "integer pixelsamples" [ 16 ]
 #PixelFilter "triangle"
 #    "float xwidth" [ 1 ]
 #    "float ywidth" [ 1 ]
 Film "image"
 
-
-    "string filename" ["../..\\..\\image/fsd-star-colorful-nofiltered-2000-32spp-150000.png"]
-
+    "string filename" ["../../../image/fsd-circdiamond-uniColor-fov49.5-nofiltered-2000-16spp-150000.png"]
 
     "integer yresolution" [ 2000 ]
     "integer xresolution" [ 2000 ]
 Camera "perspective"
-    "float fov" [ 79.5 ]
+    "float fov" [ 49.5 ]
 
 Accelerator "kdtree"
 
@@ -128,7 +124,7 @@ Rotate 90 0 1 0
 Rotate 90 0 0 1
 
 
-Include "../geometry/star.pbrt"
+Include "../geometry/circdiamond.pbrt"
 
 AttributeEnd
 
