@@ -489,6 +489,7 @@ class RGBSpectrum : public CoefficientSpectrum<3> {
         xyz[2] *= scale;
         return FromXYZ(xyz);
     }
+    friend FsdBxDF;
 };
 
 // Spectrum Inline Functions

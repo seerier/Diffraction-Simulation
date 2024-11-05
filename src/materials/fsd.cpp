@@ -747,11 +747,20 @@ void FsdBxDF::build(const SurfaceInteraction &intr, const Scene &scene, MemoryAr
 
 #ifdef PBRT_SAMPLED_SPECTRUM
     // sample wavelength and handle related computations
-    spectrumIndex = static_cast<int>(59.9999 * random_float());
+    //spectrumIndex = static_cast<int>(59.9999 * random_float());
+    spectrumIndex = 10 + 20 * static_cast<int>(2.999999 * random_float());
+    //int index = static_cast<int>(2.999999 * random_float());
+    //if (index == 0) spectrumIndex = 13;
+    //else if (index == 1) spectrumIndex = 26;
+    //else spectrumIndex = 46;
     wavelength = 400e-7f + 5e-7f * spectrumIndex;
     //wavelength = 400e-7f + 5e-7f * spectrumIndex;
 #else
-    wavelength = 5.5e-5f;
+    spectrumIndex = static_cast<int>(2.999999 * random_float());
+    if (spectrumIndex == 0) wavelength = 4.65e-5;
+    else if (spectrumIndex == 1) wavelength = 5.3e-5;
+    else wavelength = 6.3e-5;
+    //wavelength = 5.5e-5f;
 #endif
 
     Float beam_sigma = wavelength * 25.f;
@@ -1070,7 +1079,11 @@ Spectrum FsdBxDF::f(const Vector3f &wo, const Vector3f &wiWorld) const {
     ss.c[spectrumIndex] = 60.f * result;
     return ss;
 #else
-    return Spectrum(result);
+    //return Spectrum(result);
+    RGBSpectrum rs(.0f);
+    rs.c[spectrumIndex] = 3.0f * result;
+    return rs;
+    
 #endif
 }
 
@@ -1188,7 +1201,10 @@ Spectrum FsdBxDF::Sample_f(const Vector3f &wo, Vector3f *wi,
         ss.c[spectrumIndex] = 60.f * result;
         return ss;
 #else
-        return Spectrum(result);
+        //return Spectrum(result);
+        RGBSpectrum rs(.0f);
+        rs.c[spectrumIndex] = 3.0f * result;
+        return rs;
 #endif
     }
 
