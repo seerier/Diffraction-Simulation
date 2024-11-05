@@ -22,13 +22,12 @@ This implementation is built on the PBRT-v3 framework. Therefore, you can follow
 ![Spectral Rendering](gallery/Star-Spectral-Rendering-128spp.png)
 
 
-Building pbrt
--------------
+## PBRT Build Instructions Archive ##
 
 To check out pbrt together with all dependencies, be sure to use the
 `--recursive` flag when cloning the repository, i.e.
 ```bash
-$ git clone --recursive https://github.com/mmp/pbrt-v3/
+$ git clone --recursive https://github.com/seerier/Diffraction-Simulation.git
 ```
 If you accidentally already cloned pbrt without this flag (or to update an
 pbrt source tree after a new submodule has been added, run the following
