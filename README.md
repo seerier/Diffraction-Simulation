@@ -9,7 +9,8 @@ This is my exploration of wave-optical light transport. In order to simulate the
 This implementation is built on the PBRT-v3 framework. Therefore, you can follow the [PBRT-v3 build instructions](https://github.com/mmp/pbrt-v3) to compile this project.
 
 ## Images ##
-
+The whole scene is:
+![box-scene](gallery/box-tricolor-512spp.png)
 
 
 
