@@ -1,6 +1,6 @@
 # Diffraction Simulation #
 
-This is my exploration of wave-optical light transport. In order to simulate the diffraction phenomenon, I took [A Free Space Diffraction BSDF]([https://github.com/ssteinberg/fsdBSDFpaper](https://research.nvidia.com/labs/rtr/publication/steinberg2024diffraction/steinberg2024_fsd_paper_lowres.pdf)) as a reference and rendered some beautiful images.
+This is my exploration of wave-optical light transport. In order to simulate the diffraction phenomenon, I took [A Free Space Diffraction BSDF](https://research.nvidia.com/labs/rtr/publication/steinberg2024diffraction/steinberg2024_fsd_paper_lowres.pdf) as a reference and rendered some beautiful images.
 
 ## Compilation ##
 
